@@ -48,9 +48,9 @@ sub read_xml_file ($;$) {
 	my ($xml_file, $options_ref) = @_;
 	-f $xml_file && -s _ or return undef;
 	local $/;
-	open CONTENT, "<$xml_file" or die "$xml_file: $!\n";
-	my $xml_string = <CONTENT>;
-	close CONTENT;
+	open my $CONTENT, "<$xml_file" or die "$xml_file: $!\n";
+	my $xml_string = <$CONTENT>;
+	close $CONTENT;
 	return read_xml_string($xml_string, $options_ref);
 }
 
