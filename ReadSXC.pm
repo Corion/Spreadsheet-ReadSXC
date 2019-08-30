@@ -82,11 +82,11 @@ sub handle_start {
 			$repeat_cells = $attributes{'table:number-columns-repeated'};
 		}
 # if cell contains date or time values, set boolean variable for later use
-		if (exists $attributes{'table:date-value'} ) {
-			$date_value = $attributes{'table:date-value'};
+		elsif (exists $attributes{'table:date-value'} or exists $attributes{'office:date-value'}) {
+			$date_value = $attributes{'table:date-value'} || $attributes{'office:date-value'};
 		}
-		elsif (exists $attributes{'table:time-value'} ) {
-			$time_value = $attributes{'table:time-value'};
+		elsif (exists $attributes{'table:time-value'} or exists $attributes{'office:time-value'}) {
+			$time_value = $attributes{'table:time-value'} || $attributes{'office:time-value'};
 		}
 	}
 	elsif ( $element eq "table:table-row" ) {
