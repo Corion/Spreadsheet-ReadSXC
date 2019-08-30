@@ -4,9 +4,8 @@ use 5.006;
 use strict;
 use warnings;
 
-require Exporter;
+use Exporter 'import';
 
-our @ISA = qw(Exporter);
 our @EXPORT_OK = qw(read_sxc read_xml_file read_xml_string);
 our $VERSION = '0.20';
 
