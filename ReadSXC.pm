@@ -25,6 +25,7 @@ my $repeat_rows = 1;
 my $row_hidden = 0;
 my $date_value = '';
 my $time_value = '';
+my $currency_value = '';
 my $max_datarow = -1;
 my $max_datacol = -1;
 my $col_count = -1;
@@ -81,6 +82,10 @@ sub handle_start {
 		if ( exists $attributes{'table:number-columns-repeated'} ) {
 			$repeat_cells = $attributes{'table:number-columns-repeated'};
 		}
+# save the currency value (if available)
+        if (exists $attributes{'table:value'} or exists $attributes{'office:value'} ) {
+            $currency_value = $attributes{'table:value'} || $attributes{'office:value'};
+        }
 # if cell contains date or time values, set boolean variable for later use
 		elsif (exists $attributes{'table:date-value'} or exists $attributes{'office:date-value'}) {
 			$date_value = $attributes{'table:date-value'} || $attributes{'office:date-value'};
@@ -183,8 +188,13 @@ sub handle_end {
 		$col = -1;
 	}
 	elsif ( ( $element eq "table:table-cell" ) or ( $element eq "table:covered-table-cell" ) ) {
-# assign date or time value to current workbook cell if requested
-		if ( ( $options{StandardDate} ) and ( $date_value ) ) {
+# assign currency, date or time value to current workbook cell if requested
+        if ( ( $options{StandardCurrency} ) and ( length( $currency_value ) ) ) {
+			$workbook{$table}[$row][$col] = $currency_value;
+			$currency_value = '';
+
+        }
+		elsif ( ( $options{StandardDate} ) and ( $date_value ) ) {
 			$workbook{$table}[$row][$col] = $date_value;
 			$date_value = '';
 		}
@@ -264,6 +274,7 @@ Spreadsheet::ReadSXC - Extract OpenOffice 1.x spreadsheet data
 	DropHiddenRows		=> 0,
 	DropHiddenColumns	=> 0,
 	NoTruncate		=> 0,
+	StandardCurrency	=> 0,
 	StandardDate		=> 0,
 	StandardTime		=> 0,
 	OrderBySheet		=> 0,
@@ -394,7 +405,7 @@ fixing this.
 By default, newlines within cells are ignored and all lines in a cell
 are concatenated to a single string which does not contain a newline. To
 keep the newline characters, use the following key/value pair in your
-hash of options: 
+hash of options:
 
   ReplaceNewlineWith => "\n"
 
@@ -439,6 +450,15 @@ containing data. If you prefer to keep those rows and columns, use the
 following key/value pair in your hash of options:
 
   NoTruncate => 1
+
+
+=item StandardCurrency
+
+By default, cells are returned as formatted. If you prefer to
+obtain the value as contained in the table:value attribute,
+use the following key/value pair in your hash of options:
+
+  StandardCurrency => 1
 
 
 =item StandardDate
@@ -513,6 +533,6 @@ Christoph Terhechte, E<lt>terhechte@cpan.orgE<gt>
 Copyright 2005 by Christoph Terhechte
 
 This library is free software; you can redistribute it and/or modify
-it under the same terms as Perl itself. 
+it under the same terms as Perl itself.
 
 =cut
