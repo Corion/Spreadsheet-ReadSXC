@@ -24,6 +24,11 @@ is_deeply $workbook_ref->{"Sheet2"}, [], 'Verifying Sheet2';
 
 my @sheet3 = @{$$workbook_ref{"Sheet3"}};
 is_deeply \@sheet3, \@sheet3_data, 'Verifying Sheet3';
+
+ok Spreadsheet::ReadSXC::read_sxc("t.sxc"),
+  "We can read a file twice";
+
+$workbook_ref = Spreadsheet::ReadSXC::read_sxc("t.sxc", { StandardCurrency => 1 });
 $workbook_ref = Spreadsheet::ReadSXC::read_sxc("t-date.ods", { StandardDate => 1 });
 @sheet1 = @{$$workbook_ref{"Sheet1"}};
 is_deeply \@sheet1, \@sheet1_data_ods, 'Verifying Sheet1 (raw, ods)';
