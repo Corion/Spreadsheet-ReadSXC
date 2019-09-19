@@ -3,6 +3,7 @@ lib/Spreadsheet/ReadSXC.pm
 LICENSE
 Makefile.PL
 MANIFEST
+MANIFEST.SKIP
 README
 t.sxc
 t/1.t
