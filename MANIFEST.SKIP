@@ -22,8 +22,9 @@ Makefile$
 ^.releaserc
 ^.*.cmd
 ^chrome-versions
-^WWW-Mechanize-Chrome
+^Spreadsheet-ReadSXC-*
 ^frame-\d+.png
 ^demo/
 ^.*\.mkdn$
 ^.*\.patch$
+^\.prove$
