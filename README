@@ -110,9 +110,9 @@ Should you wish to install this module manually, the procedure is
 SEE ALSO
 
 
-http://books.evc-cit.info/oobook/book.html has extensive documentation
+L<https://www.openoffice.org/xml/general.html> has extensive documentation
 of the OpenOffice 1.x XML file format (soon to be replaced by the
-OASIS file format, see http://books.evc-cit.info/odbook/book.html).
+OASIS file format (ODS), see L<http://docs.oasis-open.org/office/v1.2/OpenDocument-v1.2.pdf>).
 
 AUTHOR
 
