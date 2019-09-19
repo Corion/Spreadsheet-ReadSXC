@@ -264,6 +264,10 @@ OASIS file format (ODS), see [http://docs.oasis-open.org/office/v1.2/OpenDocumen
 
 Christoph Terhechte, <terhechte@cpan.org>
 
+# MAINTAINER
+
+Max Maischein, [mailto:corion@cpan.org](mailto:corion@cpan.org)
+
 # COPYRIGHT AND LICENSE
 
 Copyright 2005 by Christoph Terhechte
