@@ -6,5 +6,6 @@ MANIFEST
 MANIFEST.SKIP
 META.yml			Module meta-data (added by MakeMaker)
 README
-t.sxc
 t/1.t
+t/t-date.ods
+t/t.sxc
