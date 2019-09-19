@@ -53,6 +53,7 @@ my %module = (
     TEST_REQUIRES => {
         'Test::More'   => 0,
         'File::Basename' => 0,
+        'Unicode::String' => 0,
     },
 
     dist                => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },

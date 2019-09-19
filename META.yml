@@ -6,6 +6,7 @@ build_requires:
   ExtUtils::MakeMaker: '0'
   File::Basename: '0'
   Test::More: '0'
+  Unicode::String: '0'
 configure_requires:
   ExtUtils::MakeMaker: '0'
 dynamic_config: 0
