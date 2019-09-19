@@ -1,7 +1,7 @@
 Changes
+lib/Spreadsheet/ReadSXC.pm
 Makefile.PL
 MANIFEST
-ReadSXC.pm
 README
 t.sxc
 t/1.t
