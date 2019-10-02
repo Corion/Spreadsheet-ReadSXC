@@ -1,8 +1,9 @@
 Revision history for Perl extension Spreadsheet::ReadSXC.
 
-0.21  to be released
+0.21  2019-10-02
     - Add 'StandardCurrency' option to get at unformatted number values
     - Support unformatted values for ODS files
+    - New maintainer Max Maischein (corion@corion.net)
 
 0.20  2005-06-17 (Fri Jun 17 2005)
 	- almost completely rewritten to use XML::Parser's event style (instead of its tree
