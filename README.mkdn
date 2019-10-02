@@ -45,13 +45,14 @@ Spreadsheet::ReadSXC - Extract OpenOffice 1.x spreadsheet data
 
     # Iterate over every worksheet, row, and cell:
 
-    use Unicode::String qw(utf8);
+    use Encode 'decode';
 
     foreach ( sort keys %$workbook_ref ) {
        print "Worksheet ", $_, " contains ", $#{$$workbook_ref{$_}} + 1, " row(s):\n";
        foreach ( @{$$workbook_ref{$_}} ) {
           foreach ( map { defined $_ ? $_ : '' } @{$_} ) {
-             print utf8(" '$_'")->as_string;
+            my $str = decode('UTF-8', $_);
+            print " '$str'";
           }
           print "\n";
        }

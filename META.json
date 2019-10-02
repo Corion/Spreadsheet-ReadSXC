@@ -40,8 +40,7 @@
       "test" : {
          "requires" : {
             "File::Basename" : "0",
-            "Test::More" : "0",
-            "Unicode::String" : "0"
+            "Test::More" : "0"
          }
       }
    },
