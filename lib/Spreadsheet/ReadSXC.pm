@@ -7,7 +7,7 @@ use warnings;
 use Exporter 'import';
 
 our @EXPORT_OK = qw(read_sxc read_xml_file read_xml_string);
-our $VERSION = '0.20';
+our $VERSION = '0.21';
 
 use Archive::Zip;
 use XML::Parser;
