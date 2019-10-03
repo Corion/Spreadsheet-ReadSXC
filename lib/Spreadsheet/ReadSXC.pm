@@ -35,207 +35,207 @@ my %options = ();
 sub zip_error_handler {}
 
 sub read_sxc ($;$) {
-	my ($sxc_file, $options_ref) = @_;
-	-f $sxc_file && -s _ or return undef;
-	Archive::Zip::setErrorHandler(\&zip_error_handler);
-	eval {
-		my $zip = Archive::Zip->new($sxc_file);
-		my $xml_string = $zip->contents('content.xml');
-		return read_xml_string($xml_string, $options_ref);
-	};
+    my ($sxc_file, $options_ref) = @_;
+    -f $sxc_file && -s _ or return undef;
+    Archive::Zip::setErrorHandler(\&zip_error_handler);
+    eval {
+        my $zip = Archive::Zip->new($sxc_file);
+        my $xml_string = $zip->contents('content.xml');
+        return read_xml_string($xml_string, $options_ref);
+    };
 }
 
 sub read_xml_file ($;$) {
-	my ($xml_file, $options_ref) = @_;
-	-f $xml_file && -s _ or return undef;
-	local $/;
-	open my $CONTENT, '<', $xml_file
+    my ($xml_file, $options_ref) = @_;
+    -f $xml_file && -s _ or return undef;
+    local $/;
+    open my $CONTENT, '<', $xml_file
         or die "Couldn't read '$xml_file': $!\n";
-	my $xml_string = <$CONTENT>;
-	close $CONTENT;
-	return read_xml_string($xml_string, $options_ref);
+    my $xml_string = <$CONTENT>;
+    close $CONTENT;
+    return read_xml_string($xml_string, $options_ref);
 }
 
 sub read_xml_string ($;$) {
-	my ($xml_string, $options_ref) = @_;
-	%workbook = ();
-	@worksheets = ();
-	if ( defined $options_ref ) { %options = %{$options_ref}}
-	eval {
-		my $p = XML::Parser->new(Handlers => {Start => \&handle_start,
-						      End => \&handle_end,
-						      Char => \&char_start});
-		$p->parse($xml_string);
-	};
-	if ( $options{OrderBySheet} ) { return [@worksheets] } else { return {%workbook} }
+    my ($xml_string, $options_ref) = @_;
+    %workbook = ();
+    @worksheets = ();
+    if ( defined $options_ref ) { %options = %{$options_ref}}
+    eval {
+        my $p = XML::Parser->new(Handlers => {Start => \&handle_start,
+                              End => \&handle_end,
+                              Char => \&char_start});
+        $p->parse($xml_string);
+    };
+    if ( $options{OrderBySheet} ) { return [@worksheets] } else { return {%workbook} }
 }
 
 sub handle_start {
-	my ($expat, $element, %attributes) = @_;
-	if ( $element eq "text:p" ) {
+    my ($expat, $element, %attributes) = @_;
+    if ( $element eq "text:p" ) {
 # increase paragraph count if not part of an annotation
-		if ( ! $expat->within_element('office:annotation') ) { $text_p++ }
-	}
-	elsif ( ( $element eq "table:table-cell" ) or ( $element eq "table:covered-table-cell" ) ) {
+        if ( ! $expat->within_element('office:annotation') ) { $text_p++ }
+    }
+    elsif ( ( $element eq "table:table-cell" ) or ( $element eq "table:covered-table-cell" ) ) {
 # increase cell count
-		$col++;
+        $col++;
 # if number-columns-repeated is set, set $repeat_cells value accordingly for later use
-		if ( exists $attributes{'table:number-columns-repeated'} ) {
-			$repeat_cells = $attributes{'table:number-columns-repeated'};
-		}
+        if ( exists $attributes{'table:number-columns-repeated'} ) {
+            $repeat_cells = $attributes{'table:number-columns-repeated'};
+        }
 # save the currency value (if available)
         if (exists $attributes{'table:value'} or exists $attributes{'office:value'} ) {
             $currency_value = $attributes{'table:value'} || $attributes{'office:value'};
         }
 # if cell contains date or time values, set boolean variable for later use
-		elsif (exists $attributes{'table:date-value'} or exists $attributes{'office:date-value'}) {
-			$date_value = $attributes{'table:date-value'} || $attributes{'office:date-value'};
-		}
-		elsif (exists $attributes{'table:time-value'} or exists $attributes{'office:time-value'}) {
-			$time_value = $attributes{'table:time-value'} || $attributes{'office:time-value'};
-		}
-	}
-	elsif ( $element eq "table:table-row" ) {
+        elsif (exists $attributes{'table:date-value'} or exists $attributes{'office:date-value'}) {
+            $date_value = $attributes{'table:date-value'} || $attributes{'office:date-value'};
+        }
+        elsif (exists $attributes{'table:time-value'} or exists $attributes{'office:time-value'}) {
+            $time_value = $attributes{'table:time-value'} || $attributes{'office:time-value'};
+        }
+    }
+    elsif ( $element eq "table:table-row" ) {
 # increase row count
-		$row++;
+        $row++;
 # if row is hidden, set $row_hidden for later use
-		if ( exists $attributes{'table:visibility'} ) { $row_hidden = 1 } else { $row_hidden = 0 }
+        if ( exists $attributes{'table:visibility'} ) { $row_hidden = 1 } else { $row_hidden = 0 }
 # if number-rows-repeated is set, set $repeat_rows value accordingly for later use
-		if ( exists $attributes{'table:number-rows-repeated'} ) {
-			$repeat_rows = $attributes{'table:number-rows-repeated'};
-		}
-	}
-	elsif ( $element eq "table:table-column" ) {
+        if ( exists $attributes{'table:number-rows-repeated'} ) {
+            $repeat_rows = $attributes{'table:number-rows-repeated'};
+        }
+    }
+    elsif ( $element eq "table:table-column" ) {
 # increase column count
-		$col_count++;
+        $col_count++;
 # if columns is hidden, add column number to @hidden_cols array for later use
-		if ( exists $attributes{'table:visibility'} ) {
-			push @hidden_cols, $col_count;
-		}
+        if ( exists $attributes{'table:visibility'} ) {
+            push @hidden_cols, $col_count;
+        }
 # if number-columns-repeated is set and column is hidden, add affected columns to @hidden_cols
-		if ( exists $attributes{'table:number-columns-repeated'} ) {
-			$col_count++;
-			if ( exists $attributes{'table:visibility'} ) {
-				for (2..$attributes{'table:number-columns-repeated'}) {
-					push @hidden_cols, $hidden_cols[$#hidden_cols] + 1;
-				}
-			}
-		}
-	}
-	elsif ( $element eq "table:table" ) {
+        if ( exists $attributes{'table:number-columns-repeated'} ) {
+            $col_count++;
+            if ( exists $attributes{'table:visibility'} ) {
+                for (2..$attributes{'table:number-columns-repeated'}) {
+                    push @hidden_cols, $hidden_cols[$#hidden_cols] + 1;
+                }
+            }
+        }
+    }
+    elsif ( $element eq "table:table" ) {
 # get name of current table
-		$table = $attributes{'table:name'};
-	}
+        $table = $attributes{'table:name'};
+    }
 }
 
 sub handle_end {
-	my ($expat, $element) = @_;
-	if ( $element eq "table:table") {
+    my ($expat, $element) = @_;
+    if ( $element eq "table:table") {
 # decrease $max_datacol if hidden columns within range
-		if ( ( ! $options{NoTruncate} ) and ( $options{DropHiddenColumns} ) ) {
-			for ( 1..scalar grep { $_ <= $max_datacol } @hidden_cols ) {
-				$max_datacol--;
-			}
-		}
+        if ( ( ! $options{NoTruncate} ) and ( $options{DropHiddenColumns} ) ) {
+            for ( 1..scalar grep { $_ <= $max_datacol } @hidden_cols ) {
+                $max_datacol--;
+            }
+        }
 # truncate table to $max_datarow and $max_datacol
-		if ( ! $options{NoTruncate} ) {
-			$#{$workbook{$table}} = $max_datarow;
-			foreach ( @{$workbook{$table}} ) {
-				$#{$_} = $max_datacol;
-			}
-		}
+        if ( ! $options{NoTruncate} ) {
+            $#{$workbook{$table}} = $max_datarow;
+            foreach ( @{$workbook{$table}} ) {
+                $#{$_} = $max_datacol;
+            }
+        }
 # set up alternative data structure
-		if ( $options{OrderBySheet} ) {
-			push @worksheets, (
-				{
-					label	=> $table,
-					data	=> \@{$workbook{$table}},
-				}
-			);
-		}
+        if ( $options{OrderBySheet} ) {
+            push @worksheets, (
+                {
+                    label   => $table,
+                    data    => \@{$workbook{$table}},
+                }
+            );
+        }
 # reset table, column, and row values to default for next table
-		$row = -1;
-		$max_datarow = -1;
-		$max_datacol = -1;
-		$table = "";
-		$col_count = -1;
-		@hidden_cols = ();
-	}
-	elsif ( $element eq "table:table-row" ) {
+        $row = -1;
+        $max_datarow = -1;
+        $max_datacol = -1;
+        $table = "";
+        $col_count = -1;
+        @hidden_cols = ();
+    }
+    elsif ( $element eq "table:table-row" ) {
 # drop hidden columns from current row
-		if ( $options{DropHiddenColumns} ) {
-			foreach ( reverse @hidden_cols ) {
-				splice @{$workbook{$table}[$row]}, $_, 1;
-			}
-		}
+        if ( $options{DropHiddenColumns} ) {
+            foreach ( reverse @hidden_cols ) {
+                splice @{$workbook{$table}[$row]}, $_, 1;
+            }
+        }
 # drop current row, if hidden
-		if ( ( $options{DropHiddenRows} ) and ( $row_hidden == 1 ) ) {
-			pop @{$workbook{$table}};
-			$row--;
-		}
+        if ( ( $options{DropHiddenRows} ) and ( $row_hidden == 1 ) ) {
+            pop @{$workbook{$table}};
+            $row--;
+        }
 # repeat current row, if necessary
-		else {
-			for (2..$repeat_rows) {
-				$row++;
-				$workbook{$table}[$row] = $workbook{$table}[$row - 1]	# copy reference, not data
-			}
+        else {
+            for (2..$repeat_rows) {
+                $row++;
+                $workbook{$table}[$row] = $workbook{$table}[$row - 1]   # copy reference, not data
+            }
 # set max_datarow, if row not empty
-			if ( grep { defined $_ } @{$workbook{$table}[$row]} ) {
-				$max_datarow = $row;
-			}
-		}
+            if ( grep { defined $_ } @{$workbook{$table}[$row]} ) {
+                $max_datarow = $row;
+            }
+        }
 # reset row and col values to default for next row
-		$repeat_rows = 1;
-		$col = -1;
-	}
-	elsif ( ( $element eq "table:table-cell" ) or ( $element eq "table:covered-table-cell" ) ) {
+        $repeat_rows = 1;
+        $col = -1;
+    }
+    elsif ( ( $element eq "table:table-cell" ) or ( $element eq "table:covered-table-cell" ) ) {
 # assign currency, date or time value to current workbook cell if requested
         if ( ( $options{StandardCurrency} ) and ( length( $currency_value ) ) ) {
-			$workbook{$table}[$row][$col] = $currency_value;
-			$currency_value = '';
+            $workbook{$table}[$row][$col] = $currency_value;
+            $currency_value = '';
 
         }
-		elsif ( ( $options{StandardDate} ) and ( $date_value ) ) {
-			$workbook{$table}[$row][$col] = $date_value;
-			$date_value = '';
-		}
-		elsif ( ( $options{StandardTime} ) and ( $time_value ) ) {
-			$workbook{$table}[$row][$col] = $time_value;
-			$time_value = '';
-		}
+        elsif ( ( $options{StandardDate} ) and ( $date_value ) ) {
+            $workbook{$table}[$row][$col] = $date_value;
+            $date_value = '';
+        }
+        elsif ( ( $options{StandardTime} ) and ( $time_value ) ) {
+            $workbook{$table}[$row][$col] = $time_value;
+            $time_value = '';
+        }
 # join cell contents and assign to current workbook cell
-		else {
-			$workbook{$table}[$row][$col] = @cell ? join $options{ReplaceNewlineWith} || "", @cell : undef;
-		}
+        else {
+            $workbook{$table}[$row][$col] = @cell ? join $options{ReplaceNewlineWith} || "", @cell : undef;
+        }
 # repeat current cell, if necessary
-		for (2..$repeat_cells) {
-			$col++;
-			$workbook{$table}[$row][$col] = $workbook{$table}[$row][$col - 1];
-		}
+        for (2..$repeat_cells) {
+            $col++;
+            $workbook{$table}[$row][$col] = $workbook{$table}[$row][$col - 1];
+        }
 # reset cell and paragraph values to default for next cell
-		@cell = ();
-		$repeat_cells = 1;
-		$text_p = -1;
-	}
+        @cell = ();
+        $repeat_cells = 1;
+        $text_p = -1;
+    }
 }
 
 sub char_start {
-	my ($expat, $content) = @_;
+    my ($expat, $content) = @_;
 # don't include paragraph if part of an annotation
-	if ( $expat->within_element('office:annotation') ) {
-		return;
-	}
+    if ( $expat->within_element('office:annotation') ) {
+        return;
+    }
 # don't include covered cells, if not requested
-	if ( ( $expat->within_element('table:covered-table-cell') ) and ( ! $options{IncludeCoveredCells} ) ) {
-		return;
-	}
+    if ( ( $expat->within_element('table:covered-table-cell') ) and ( ! $options{IncludeCoveredCells} ) ) {
+        return;
+    }
 # add paragraph or textspan to current @cell array
-	if ( $table ) {
-		$cell[$text_p] .= $content;
+    if ( $table ) {
+        $cell[$text_p] .= $content;
 # set $max_datarow and $max_datacol to current values
-		$max_datarow = $row;
-		if ( $col > $max_datacol ) { $max_datacol = $col }
-	}
+        $max_datarow = $row;
+        if ( $col > $max_datacol ) { $max_datacol = $col }
+    }
 }
 
 1;
@@ -270,15 +270,15 @@ Spreadsheet::ReadSXC - Extract OpenOffice 1.x spreadsheet data
   # Control the output through a hash of options (below are the defaults):
 
   my %options = (
-	ReplaceNewlineWith	=> "",
-	IncludeCoveredCells	=> 0,
-	DropHiddenRows		=> 0,
-	DropHiddenColumns	=> 0,
-	NoTruncate		=> 0,
-	StandardCurrency	=> 0,
-	StandardDate		=> 0,
-	StandardTime		=> 0,
-	OrderBySheet		=> 0,
+    ReplaceNewlineWith  => "",
+    IncludeCoveredCells => 0,
+    DropHiddenRows      => 0,
+    DropHiddenColumns   => 0,
+    NoTruncate      => 0,
+    StandardCurrency    => 0,
+    StandardDate        => 0,
+    StandardTime        => 0,
+    OrderBySheet        => 0,
   );
   my $workbook_ref = read_sxc("/path/to/file.sxc", \%options );
 
