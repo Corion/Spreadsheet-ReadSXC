@@ -254,7 +254,6 @@ __END__
 
 Spreadsheet::ReadSXC - Extract OpenOffice 1.x spreadsheet data
 
-
 =head1 SYNOPSIS
 
 
@@ -283,7 +282,7 @@ Spreadsheet::ReadSXC - Extract OpenOffice 1.x spreadsheet data
     IncludeCoveredCells => 0,
     DropHiddenRows      => 0,
     DropHiddenColumns   => 0,
-    NoTruncate      => 0,
+    NoTruncate          => 0,
     StandardCurrency    => 0,
     StandardDate        => 0,
     StandardTime        => 0,
