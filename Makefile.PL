@@ -48,7 +48,7 @@ my %module = (
 
     PREREQ_PM => {
         'Carp'               => 0,
-        'Archive::Zip'       => 0,
+        'Archive::Zip'       => '1.34', # for seekable streams, verified thanks to Backpan
         'PerlIO::gzip'       => 0,
         'XML::Parser'        => 0,
     },

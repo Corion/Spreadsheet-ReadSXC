@@ -22,7 +22,7 @@ no_index:
     - t
     - inc
 requires:
-  Archive::Zip: '0'
+  Archive::Zip: '1.34'
   Carp: '0'
   PerlIO::gzip: '0'
   XML::Parser: '0'
