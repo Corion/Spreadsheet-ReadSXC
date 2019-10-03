@@ -11,6 +11,7 @@ our $VERSION = '0.21';
 
 use Archive::Zip ':ERROR_CODES';
 use XML::Parser;
+use Carp qw(croak);
 
 my %workbook = ();
 my @worksheets = ();
@@ -36,9 +37,11 @@ sub zip_error_handler {}
 
 sub read_sxc ($;$) {
     my ($sxc_file, $options_ref) = @_;
-    -f $sxc_file && -s _ or return undef;
+    if( !$options_ref->{StrictErrors}) {
+        -f $sxc_file && -s _ or return undef;
+    };
     open my $fh, '<', $sxc_file
-        or die "Couldn't open '$sxc_file': $!";
+        or croak "Couldn't open '$sxc_file': $!";
     read_sxc_fh( $fh, $options_ref );
 }
 
@@ -47,7 +50,7 @@ sub read_sxc_fh {
     my $zip = Archive::Zip->new();
     my $status = $zip->readFromFileHandle($fh);
     $status == AZ_OK
-        or die "Read error from zip";
+        or croak "Read error from zip";
     my $content = $zip->memberNamed('content.xml');
     $content->rewindData();
     my $stream = $content->fh;
@@ -57,7 +60,9 @@ sub read_sxc_fh {
 
 sub read_xml_file ($;$) {
     my ($xml_file, $options_ref) = @_;
-    -f $xml_file && -s _ or return undef;
+    if( !$options_ref->{StrictErrors}) {
+        -f $xml_file && -s _ or return undef;
+    };
     _parse_xml($xml_file, $options_ref);
 }
 
@@ -287,6 +292,7 @@ Spreadsheet::ReadSXC - Extract OpenOffice 1.x spreadsheet data
     StandardDate        => 0,
     StandardTime        => 0,
     OrderBySheet        => 0,
+    StrictErrors        => 0,
   );
   my $workbook_ref = read_sxc("/path/to/file.sxc", \%options );
 
@@ -408,6 +414,11 @@ fixing this.
 =head1 OPTIONS
 
 =over 4
+
+=item StrictErrors
+
+Turn on error reporting by using C<croak>. Otherwise, functions silently
+return C<undef> when errors are encountered.
 
 =item ReplaceNewlineWith
 
