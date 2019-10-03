@@ -35,7 +35,7 @@
             "Archive::Zip" : "0",
             "Carp" : "0",
             "XML::Parser" : "0",
-            "perl" : "5.006"
+            "perl" : "5.008"
          }
       },
       "test" : {
