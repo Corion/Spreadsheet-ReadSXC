@@ -145,7 +145,9 @@ sub handle_start {
 sub handle_end {
     my ($expat, $element) = @_;
     if ( $element eq "text:p" ) {
-        $cell[ $text_p ] ||= undef;
+        if( ! $expat->within_element('office:annotation') ) {
+            $cell[ $text_p ] ||= undef;
+        };
     }
     elsif ( $element eq "table:table") {
 # decrease $max_datacol if hidden columns within range
