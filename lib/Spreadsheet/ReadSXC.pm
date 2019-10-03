@@ -37,7 +37,6 @@ sub zip_error_handler {}
 sub read_sxc ($;$) {
     my ($sxc_file, $options_ref) = @_;
     -f $sxc_file && -s _ or return undef;
-    Archive::Zip::setErrorHandler(\&zip_error_handler);
     open my $fh, '<', $sxc_file
         or die "Couldn't open '$sxc_file': $!";
     read_sxc_fh( $fh, $options_ref );
