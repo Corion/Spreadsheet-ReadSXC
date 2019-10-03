@@ -33,13 +33,15 @@
       "runtime" : {
          "requires" : {
             "Archive::Zip" : "0",
+            "Carp" : "0",
             "XML::Parser" : "0",
-            "perl" : "5.010"
+            "perl" : "5.006"
          }
       },
       "test" : {
          "requires" : {
             "File::Basename" : "0",
+            "File::Temp" : "0",
             "Test::More" : "0"
          }
       }

@@ -1,6 +1,9 @@
 Revision history for Perl extension Spreadsheet::ReadSXC.
 
 0.22  2019-xx-xx
+    - Lower Perl version requirement back to 5.6
+      There is no current reason to require more. Your actual Unicode handling
+      needs might push you to use at least 5.8.x.
     - API Change:
       Formatting or read errors in the compressed input or the XML are now
       fatal errors. Before, they returned the half-parsed data structure.

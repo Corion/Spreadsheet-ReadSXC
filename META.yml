@@ -5,6 +5,7 @@ author:
 build_requires:
   ExtUtils::MakeMaker: '0'
   File::Basename: '0'
+  File::Temp: '0'
   Test::More: '0'
 configure_requires:
   ExtUtils::MakeMaker: '0'
@@ -21,8 +22,9 @@ no_index:
     - inc
 requires:
   Archive::Zip: '0'
+  Carp: '0'
   XML::Parser: '0'
-  perl: '5.010'
+  perl: '5.006'
 resources:
   license: https://dev.perl.org/licenses/
   repository: git://github.com/Corion/Spreadsheet-ReadSXC.git
