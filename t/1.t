@@ -1,9 +1,9 @@
 use strict;
-use Test::More tests => 12;
+use Test::More tests => 9;
 use File::Basename 'dirname';
-BEGIN { use_ok('Spreadsheet::ReadSXC') };
-BEGIN { use_ok('Archive::Zip') };
-BEGIN { use_ok('XML::Parser') };
+use Spreadsheet::ReadSXC;
+use Archive::Zip;
+use XML::Parser;
 
 my $d = dirname($0);
 
