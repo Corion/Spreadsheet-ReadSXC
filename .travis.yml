@@ -36,6 +36,7 @@ matrix:
 
 sudo: false
 
+before_install:
   - git clone git://github.com/travis-perl/helpers ~/travis-perl-helpers
   # Install perlbrew the hard way, on OSX
   #- if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew upgrade; brew install perl ; fi
