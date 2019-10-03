@@ -1,5 +1,13 @@
 Revision history for Perl extension Spreadsheet::ReadSXC.
 
+0.22  2019-xx-xx
+    - API Change:
+      Formatting or read errors in the compressed input or the XML are now
+      fatal errors. Before, they returned the half-parsed data structure.
+    - read_sxc() and read_xml_file can now also return a fatal error when the
+      file is not found or not readable instead of returning undef. Pass a true
+      value to the the StrictError option.
+
 0.21  2019-10-02
     - Add 'StandardCurrency' option to get at unformatted number values
     - Support unformatted values for ODS files

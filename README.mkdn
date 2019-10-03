@@ -38,6 +38,7 @@ Spreadsheet::ReadSXC - Extract OpenOffice 1.x spreadsheet data
       StandardDate        => 0,
       StandardTime        => 0,
       OrderBySheet        => 0,
+      StrictErrors        => 0,
     );
     my $workbook_ref = read_sxc("/path/to/file.sxc", \%options );
 
@@ -154,6 +155,11 @@ derefence it before making another call. Thanks to H. Merijn Brand for
 fixing this.
 
 # OPTIONS
+
+- StrictErrors
+
+    Turn on error reporting by using `croak`. Otherwise, functions silently
+    return `undef` when errors are encountered.
 
 - ReplaceNewlineWith
 

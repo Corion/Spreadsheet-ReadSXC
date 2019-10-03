@@ -55,7 +55,7 @@ sub read_sxc_fh {
     $content->rewindData();
     my $stream = $content->fh;
     binmode $stream => ':gzip(none)';
-    _parse_xml( $stream, $options_ref );
+    _parse_xml( {}, $stream, $options_ref );
 }
 
 sub read_xml_file ($;$) {
@@ -63,25 +63,24 @@ sub read_xml_file ($;$) {
     if( !$options_ref->{StrictErrors}) {
         -f $xml_file && -s _ or return undef;
     };
-    _parse_xml($xml_file, $options_ref);
+    _parse_xml({ method => 'parsefile' }, $xml_file, $options_ref);
 }
 
 sub read_xml_string ($;$) {
     my ($xml_string, $options_ref) = @_;
-    _parse_xml( $xml_string, $options_ref );
+    _parse_xml( {}, $xml_string, $options_ref );
 }
 
 sub _parse_xml {
-    my ($xml_thing, $options_ref) = @_;
+    my ($internal_options, $xml_thing, $options_ref) = @_;
     %workbook = ();
     @worksheets = ();
-    if ( defined $options_ref ) { %options = %{$options_ref}}
-    eval {
-        my $p = XML::Parser->new(Handlers => {Start => \&handle_start,
-                              End => \&handle_end,
-                              Char => \&char_start});
-        $p->parse($xml_thing);
-    };
+    if ( defined $options_ref ) { %options = %{$options_ref}};
+    my $parse = $internal_options->{ method } || 'parse';
+    my $p = XML::Parser->new(Handlers => {Start => \&handle_start,
+                          End => \&handle_end,
+                          Char => \&char_start});
+    $p->$parse($xml_thing);
     if ( $options{OrderBySheet} ) { return [@worksheets] } else { return {%workbook} }
 }
 

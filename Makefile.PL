@@ -47,11 +47,13 @@ my %module = (
     },
 
     PREREQ_PM => {
+        'Carp'               => 0,
         'Archive::Zip'       => 0,
         'XML::Parser'        => 0,
     },
     TEST_REQUIRES => {
-        'Test::More'   => 0,
+        'Test::More'     => 0,
+        'File::Temp'     => 0,
         'File::Basename' => 0,
     },
 
