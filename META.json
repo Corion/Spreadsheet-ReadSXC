@@ -34,6 +34,7 @@
          "requires" : {
             "Archive::Zip" : "0",
             "Carp" : "0",
+            "PerlIO::gzip" : "0",
             "XML::Parser" : "0",
             "perl" : "5.008"
          }

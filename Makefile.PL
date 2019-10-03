@@ -49,6 +49,7 @@ my %module = (
     PREREQ_PM => {
         'Carp'               => 0,
         'Archive::Zip'       => 0,
+        'PerlIO::gzip'       => 0,
         'XML::Parser'        => 0,
     },
     TEST_REQUIRES => {
