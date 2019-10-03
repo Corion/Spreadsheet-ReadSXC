@@ -1,6 +1,6 @@
 Revision history for Perl extension Spreadsheet::ReadSXC.
 
-0.22  2019-xx-xx
+0.22  2019-10-03
     - Lower Perl version requirement back to 5.8
       There is no current reason to require more.
     - API Change:
