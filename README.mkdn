@@ -11,7 +11,6 @@ Spreadsheet::ReadSXC - Extract OpenOffice 1.x spreadsheet data
     use Spreadsheet::ReadSXC qw(read_sxc);
     my $workbook_ref = read_sxc("/path/to/file.sxc");
 
-
     # Alternatively, unpack the .sxc file yourself and pass content.xml
 
     use Spreadsheet::ReadSXC qw(read_xml_file);
@@ -34,7 +33,7 @@ Spreadsheet::ReadSXC - Extract OpenOffice 1.x spreadsheet data
       IncludeCoveredCells => 0,
       DropHiddenRows      => 0,
       DropHiddenColumns   => 0,
-      NoTruncate      => 0,
+      NoTruncate          => 0,
       StandardCurrency    => 0,
       StandardDate        => 0,
       StandardTime        => 0,
@@ -255,6 +254,50 @@ fixing this.
         my $name_of_first_sheet = $$worksheets_ref[0]{label};
         my $first_cell_of_first_sheet = $$worksheets_ref[0]{data}[0][0];
 
+# FUNCTIONS
+
+## read\_sxc
+
+    my $workbook_ref = read_sxc("/path/to/file.sxc");
+
+Reads an SXC or ODS file given a filename and returns the worksheets as a
+data structure.
+
+## read\_sxc\_fh
+
+    open my $fh = 'example.ods';
+    my $sheet = read_sxc_fh( $fh );
+
+Reads an SXC or ODS file given a filehandle and returns the worksheets as a
+data structure.
+
+## read\_xml\_file
+
+    my $workbook_ref = read_xml_file("/path/to/content.xml");
+
+Reads an XML file from a SXC or ODS file returns the worksheets as a
+data structure.
+
+## read\_xml\_string
+
+Parses an XML string and eturns the worksheets as a data structure.
+
+# Reading an SXC file from an URL
+
+    use HTTP::Tiny;
+    use Spreadsheet::Read;
+
+    # Fetch data and return a filehandle to that data
+    sub fetch_url {
+        my( $url ) = @_;
+        my $ua = HTTP::Tiny->new;
+        my $res = $ua->get( $url );
+        open my $fh, '<', \$res->{content};
+        return $fh
+    }
+    my $fh = fetch_url('http://example.com/example.ods');
+    my $sheet = read_sxc_fh( $fh );
+
 # SEE ALSO
 
 [https://www.openoffice.org/xml/general.html](https://www.openoffice.org/xml/general.html) has extensive documentation
@@ -271,7 +314,8 @@ Max Maischein, [mailto:corion@cpan.org](mailto:corion@cpan.org)
 
 # COPYRIGHT AND LICENSE
 
-Copyright 2005 by Christoph Terhechte
+Copyright 2005-2019 by Christoph Terhechte
+Copyright 2019- by Max Maischein
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.

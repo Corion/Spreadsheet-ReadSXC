@@ -2,7 +2,6 @@ Spreadsheet::ReadSXC - Extract OpenOffice 1.x spreadsheet data
 
 DESCRIPTION
 
-
 Spreadsheet::ReadSXC extracts data from OpenOffice 1.x spreadsheet
 files (.sxc). It exports the function read_sxc() which takes a
 filename and an optional reference to a hash of options as
@@ -116,14 +115,14 @@ OASIS file format (ODS), see L<http://docs.oasis-open.org/office/v1.2/OpenDocume
 
 AUTHOR
 
-
 Christoph Terhechte, E<lt>terhechte@cpan.orgE<gt>
 
 
 COPYRIGHT AND LICENSE
 
 
-Copyright 2005 by Christoph Terhechte
+Copyright 2005-2019 by Christoph Terhechte
+Copyright 2019- by Max Maischein
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.
