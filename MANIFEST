@@ -13,6 +13,7 @@ t/02-read-xml-file.t
 t/03-error-handling.t
 t/1.t
 t/t-date.ods
+t/t-multiline.ods
 t/t.sxc
 xt/99-changes.t
 xt/99-compile.t

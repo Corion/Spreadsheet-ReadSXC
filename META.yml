@@ -3,6 +3,7 @@ abstract: 'Extract OpenOffice 1.x spreadsheet data'
 author:
   - 'Max Maischein <corion@cpan.org>'
 build_requires:
+  Data::Dumper: '0'
   ExtUtils::MakeMaker: '0'
   File::Basename: '0'
   File::Temp: '0'

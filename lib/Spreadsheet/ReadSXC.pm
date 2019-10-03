@@ -88,7 +88,7 @@ sub handle_start {
     my ($expat, $element, %attributes) = @_;
     if ( $element eq "text:p" ) {
 # increase paragraph count if not part of an annotation
-        if ( ! $expat->within_element('office:annotation') ) { $text_p++ }
+        if ( ! $expat->within_element('office:annotation') ) { $text_p++; }
     }
     elsif ( ( $element eq "table:table-cell" ) or ( $element eq "table:covered-table-cell" ) ) {
 # increase cell count
@@ -144,7 +144,10 @@ sub handle_start {
 
 sub handle_end {
     my ($expat, $element) = @_;
-    if ( $element eq "table:table") {
+    if ( $element eq "text:p" ) {
+        $cell[ $text_p ] ||= undef;
+    }
+    elsif ( $element eq "table:table") {
 # decrease $max_datacol if hidden columns within range
         if ( ( ! $options{NoTruncate} ) and ( $options{DropHiddenColumns} ) ) {
             for ( 1..scalar grep { $_ <= $max_datacol } @hidden_cols ) {
@@ -219,7 +222,8 @@ sub handle_end {
         }
 # join cell contents and assign to current workbook cell
         else {
-            $workbook{$table}[$row][$col] = @cell ? join $options{ReplaceNewlineWith} || "", @cell : undef;
+            $workbook{$table}[$row][$col] = @cell ? join $options{ReplaceNewlineWith} || "",
+                map { defined($_) ? $_ : '' } @cell : undef;
         }
 # repeat current cell, if necessary
         for (2..$repeat_cells) {

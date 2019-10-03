@@ -55,6 +55,7 @@ my %module = (
         'Test::More'     => 0,
         'File::Temp'     => 0,
         'File::Basename' => 0,
+        'Data::Dumper'   => 0,
     },
 
     dist                => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
