@@ -38,11 +38,9 @@ sub read_sxc ($;$) {
     my ($sxc_file, $options_ref) = @_;
     -f $sxc_file && -s _ or return undef;
     Archive::Zip::setErrorHandler(\&zip_error_handler);
-    eval {
-        my $zip = Archive::Zip->new($sxc_file);
-        my $xml_string = $zip->contents('content.xml');
-        return read_xml_string($xml_string, $options_ref);
-    };
+    open my $fh, '<', $sxc_file
+        or die "Couldn't open '$sxc_file': $!";
+    read_sxc_fh( $fh, $options_ref );
 }
 
 sub read_sxc_fh {
@@ -51,23 +49,26 @@ sub read_sxc_fh {
     my $status = $zip->readFromFileHandle($fh);
     $status == AZ_OK
         or die "Read error from zip";
-    my $xml_string = $zip->contents('content.xml');
-    return read_xml_string($xml_string, $options_ref);
+    my $content = $zip->memberNamed('content.xml');
+    $content->rewindData();
+    my $stream = $content->fh;
+    binmode $stream => ':gzip(none)';
+    _parse_xml( $stream, $options_ref );
 }
 
 sub read_xml_file ($;$) {
     my ($xml_file, $options_ref) = @_;
     -f $xml_file && -s _ or return undef;
-    local $/;
-    open my $CONTENT, '<', $xml_file
-        or die "Couldn't read '$xml_file': $!\n";
-    my $xml_string = <$CONTENT>;
-    close $CONTENT;
-    return read_xml_string($xml_string, $options_ref);
+    _parse_xml($xml_file, $options_ref);
 }
 
 sub read_xml_string ($;$) {
     my ($xml_string, $options_ref) = @_;
+    _parse_xml( $xml_string, $options_ref );
+}
+
+sub _parse_xml {
+    my ($xml_thing, $options_ref) = @_;
     %workbook = ();
     @worksheets = ();
     if ( defined $options_ref ) { %options = %{$options_ref}}
@@ -75,7 +76,7 @@ sub read_xml_string ($;$) {
         my $p = XML::Parser->new(Handlers => {Start => \&handle_start,
                               End => \&handle_end,
                               Char => \&char_start});
-        $p->parse($xml_string);
+        $p->parse($xml_thing);
     };
     if ( $options{OrderBySheet} ) { return [@worksheets] } else { return {%workbook} }
 }
