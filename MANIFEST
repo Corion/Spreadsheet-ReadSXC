@@ -8,6 +8,7 @@ META.json
 META.yml			Module meta-data (added by MakeMaker)
 README
 t/00-load.t
+t/02-read-fh.t
 t/1.t
 t/t-date.ods
 t/t.sxc

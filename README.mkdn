@@ -30,15 +30,15 @@ Spreadsheet::ReadSXC - Extract OpenOffice 1.x spreadsheet data
     # Control the output through a hash of options (below are the defaults):
 
     my %options = (
-          ReplaceNewlineWith      => "",
-          IncludeCoveredCells     => 0,
-          DropHiddenRows          => 0,
-          DropHiddenColumns       => 0,
-          NoTruncate              => 0,
-          StandardCurrency        => 0,
-          StandardDate            => 0,
-          StandardTime            => 0,
-          OrderBySheet            => 0,
+      ReplaceNewlineWith  => "",
+      IncludeCoveredCells => 0,
+      DropHiddenRows      => 0,
+      DropHiddenColumns   => 0,
+      NoTruncate      => 0,
+      StandardCurrency    => 0,
+      StandardDate        => 0,
+      StandardTime        => 0,
+      OrderBySheet        => 0,
     );
     my $workbook_ref = read_sxc("/path/to/file.sxc", \%options );
 

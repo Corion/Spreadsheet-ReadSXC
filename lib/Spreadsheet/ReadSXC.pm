@@ -6,10 +6,10 @@ use warnings;
 
 use Exporter 'import';
 
-our @EXPORT_OK = qw(read_sxc read_xml_file read_xml_string);
+our @EXPORT_OK = qw(read_sxc read_sxc_fh read_xml_file read_xml_string);
 our $VERSION = '0.21';
 
-use Archive::Zip;
+use Archive::Zip ':ERROR_CODES';
 use XML::Parser;
 
 my %workbook = ();
@@ -43,6 +43,16 @@ sub read_sxc ($;$) {
         my $xml_string = $zip->contents('content.xml');
         return read_xml_string($xml_string, $options_ref);
     };
+}
+
+sub read_sxc_fh {
+    my ($fh, $options_ref) = @_;
+    my $zip = Archive::Zip->new();
+    my $status = $zip->readFromFileHandle($fh);
+    $status == AZ_OK
+        or die "Read error from zip";
+    my $xml_string = $zip->contents('content.xml');
+    return read_xml_string($xml_string, $options_ref);
 }
 
 sub read_xml_file ($;$) {
@@ -251,7 +261,6 @@ Spreadsheet::ReadSXC - Extract OpenOffice 1.x spreadsheet data
   use Spreadsheet::ReadSXC qw(read_sxc);
   my $workbook_ref = read_sxc("/path/to/file.sxc");
 
-
   # Alternatively, unpack the .sxc file yourself and pass content.xml
 
   use Spreadsheet::ReadSXC qw(read_xml_file);
@@ -316,7 +325,6 @@ Spreadsheet::ReadSXC - Extract OpenOffice 1.x spreadsheet data
 
 
 =head1 DESCRIPTION
-
 
 Spreadsheet::ReadSXC extracts data from OpenOffice 1.x spreadsheet
 files (.sxc). It exports the function read_sxc() which takes a
@@ -512,6 +520,49 @@ two-dimensional array containing rows and columns of the worksheet:
 
 =back
 
+=head1 FUNCTIONS
+
+=head2 read_sxc
+
+  my $workbook_ref = read_sxc("/path/to/file.sxc");
+
+Reads an SXC or ODS file given a filename and returns the worksheets as a
+data structure.
+
+=head2 read_sxc_fh
+
+    open my $fh = 'example.ods';
+    my $sheet = read_sxc_fh( $fh );
+
+Reads an SXC or ODS file given a filehandle and returns the worksheets as a
+data structure.
+
+=head2 read_xml_file
+
+  my $workbook_ref = read_xml_file("/path/to/content.xml");
+
+Reads an XML file from a SXC or ODS file returns the worksheets as a
+data structure.
+
+=head2 read_xml_string
+
+Parses an XML string and eturns the worksheets as a data structure.
+
+=head1 Reading an SXC file from an URL
+
+    use HTTP::Tiny;
+    use Spreadsheet::Read;
+
+    # Fetch data and return a filehandle to that data
+    sub fetch_url {
+        my( $url ) = @_;
+        my $ua = HTTP::Tiny->new;
+        my $res = $ua->get( $url );
+        open my $fh, '<', \$res->{content};
+        return $fh
+    }
+    my $fh = fetch_url('http://example.com/example.ods');
+    my $sheet = read_sxc_fh( $fh );
 
 
 =head1 SEE ALSO
@@ -521,10 +572,7 @@ L<https://www.openoffice.org/xml/general.html> has extensive documentation
 of the OpenOffice 1.x XML file format (soon to be replaced by the
 OASIS file format (ODS), see L<http://docs.oasis-open.org/office/v1.2/OpenDocument-v1.2.pdf>).
 
-
-
 =head1 AUTHOR
-
 
 Christoph Terhechte, E<lt>terhechte@cpan.orgE<gt>
 
@@ -536,7 +584,8 @@ Max Maischein, L<mailto:corion@cpan.org>
 =head1 COPYRIGHT AND LICENSE
 
 
-Copyright 2005 by Christoph Terhechte
+Copyright 2005-2019 by Christoph Terhechte
+Copyright 2019- by Max Maischein
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.
