@@ -921,7 +921,7 @@ my $expected = {
                      ]
          };
 
-is_deeply $workbook_ref, $expected, "StockChart.ods gets parsed identically"
+is_deeply $workbook_ref, $expected, "NewAPI.ods gets parsed identically"
     or diag Dumper $workbook_ref;
 
 $workbook_ref = Spreadsheet::ReadSXC::read_sxc("$d/NewAPI.ods", {    StandardCurrency    => 1,
@@ -1841,6 +1841,6 @@ my $expected = {
                      ]
          };
 
-is_deeply $workbook_ref, $expected, "StockChart.ods gets parsed identically with standardized values"
+is_deeply $workbook_ref, $expected, "NewAPI.ods gets parsed identically with standardized values"
     or diag Dumper $workbook_ref;
 
