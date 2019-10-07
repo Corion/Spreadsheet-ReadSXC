@@ -70,7 +70,6 @@ sub parse {
     my $max_datacol = -1;
     my $col_count = -1;
     my @hidden_cols = ();
-    my %options = ();
 
     my %handlers;
 
@@ -217,14 +216,14 @@ sub parse {
         }
 
         # decrease $max_datacol if hidden columns within range
-        if ( ( ! $options{NoTruncate} ) and ( $options{DropHiddenColumns} ) ) {
+        if ( ( ! $self->NoTruncate ) and ( $self->DropHiddenColumns ) ) {
             for ( 1..scalar grep { $_ <= $max_datacol } @hidden_cols ) {
                 $max_datacol--;
             }
         }
 
         # truncate/expand table to $max_datarow and $max_datacol
-        if ( ! $options{NoTruncate} ) {
+        if ( ! $self->NoTruncate ) {
             $#{$tableref} = $max_datarow;
             foreach ( @{$tableref} ) {
                 $#{$_} = $max_datacol;
@@ -235,7 +234,7 @@ sub parse {
             if $max_datacol == 0;
 
 # set up alternative data structure
-        if ( $options{OrderBySheet} ) {
+        if ( $self->OrderBySheet ) {
             push @worksheets, (
                 {
                     label   => $table,
