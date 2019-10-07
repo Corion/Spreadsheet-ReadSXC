@@ -199,16 +199,24 @@ sub parse {
                             } else {
                                 $text = $value;
                             };
-                            $row_has_content = $row_has_content || defined $text;
+
+                            #if( defined $text ) {
+                                $row_has_content = 1;
+                            #};
                         };
                         push @$rowref, $text;
+                        if( defined $text ) {
+                            #if( $#$rowref > $max_datacol ) {
+                            #    warn "New length: " . Dumper $rowref;
+                            #};
+                            $max_datacol = max( $max_datacol, $#$rowref );
+                        };
                     };
                 };
             };
-            if( $row_has_content ) {
+            if( $row_has_content and @$rowref) {
                 push @$tableref, $rowref;
                 $max_datarow++;
-                $max_datacol = max( $max_datacol, $#$rowref );
             };
         }
 
