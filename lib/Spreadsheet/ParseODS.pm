@@ -5,8 +5,9 @@ use warnings;
 use Archive::Zip ':ERROR_CODES';
 use Moo 2;
 use XML::Parser;
-use XML::Twig;
+use XML::Twig::XPath;
 use Carp qw(croak);
+use List::Util 'max';
 
 our $VERSION = '0.23';
 
@@ -39,7 +40,7 @@ has 'StrictErrors'         => ( is => 'ro', default => 0,  );
 has 'twig' => (
     is => 'lazy',
     default => sub {
-        XML::Twig->new(
+        XML::Twig::XPath->new(
             no_xxe => 1,
             keep_spaces => 1,
         )
@@ -59,10 +60,6 @@ sub parse {
     my %workbook = ();
     my @worksheets = ();
     my @sheet_order = ();
-    my $table = "";
-    my $row = -1;
-    my $col = -1;
-    my $text_p = -1;
     my @cell = ();
     my $repeat_cells = 1;
     my $repeat_rows = 1;
@@ -111,56 +108,18 @@ sub parse {
 #        }
 #    };
 
-    $handlers{ "table:table-row" } = sub {
-        my( $element ) = @_;
+    $handlers{ "table:table" } = sub {
+        my( $twig, $table ) = @_;
 # reset table, column, and row values to default for this table
-        $row = -1;
-        $max_datarow = -1;
-        $max_datacol = -1;
-        $table = "";
-        $col_count = -1;
+        my $max_datarow = -1;
+        my $max_datacol = -1;
         @hidden_cols = ();
 
-        $table = $element->att('table:name');
-        $row_hidden = $element->att( 'table:visibility';
+        my $tablename = $table->{att}->{'table:name'};
+        my $tableref = $workbook{ $tablename } = [];
+        my $table_hidden = $table->att( 'table:visibility' );
 
-        for my $row ($table->find('
-        # XXX Collect table rows here
-            # XXX Collect cell and cell values here
-
-# increase row count
-        $row++;
-# if row is hidden, set $row_hidden for later use
-# if number-rows-repeated is set, set $repeat_rows value accordingly for later use
-        my $repeat = $element->att('table:number-rows-repeated');
-        if( defined $repeat ) {
-            $repeat_rows = $repeat;
-        };
-
-# decrease $max_datacol if hidden columns within range
-        if ( ( ! $options{NoTruncate} ) and ( $options{DropHiddenColumns} ) ) {
-            for ( 1..scalar grep { $_ <= $max_datacol } @hidden_cols ) {
-                $max_datacol--;
-            }
-        }
-# truncate table to $max_datarow and $max_datacol
-        if ( ! $options{NoTruncate} ) {
-            $#{$workbook{$table}} = $max_datarow;
-            foreach ( @{$workbook{$table}} ) {
-                $#{$_} = $max_datacol;
-            }
-        }
-# set up alternative data structure
-        if ( $options{OrderBySheet} ) {
-            push @worksheets, (
-                {
-                    label   => $table,
-                    data    => \@{$workbook{$table}},
-                }
-            );
-        };
-    };
-
+        # Look at table:column and decide other stuff
 #    $handlers{ "table:table-column" } = sub {
 #        my( $element ) = @_;
 ## increase column count
@@ -181,55 +140,103 @@ sub parse {
 #            }
 #        }
 #    };
-#
-#    $handlers{ "table:table" } = sub {
-#        my( $element ) = @_;
-## get name of current table
-#    }
-}
+
+        for my $row ($table->findnodes('.//table:table-row')) {
+            my $row_hidden = $table->att( 'table:visibility' );
+# if row is hidden, set $row_hidden for later use
+# if number-rows-repeated is set, set $repeat_rows value accordingly for later use
+
+            my $rowref = [];
+            push @$tableref, $rowref;
+            #print "row $rowref";
+
+            $max_datarow++;
+
+            my $repeat = $row->att('table:number-rows-repeated');
+            if( defined $repeat ) {
+                $repeat_rows = $repeat;
+            };
+
+            for my $cell ($row->findnodes("./table:table-cell | ./table:covered-table-cell")) {
+                if( $cell->is_empty ) {
+                    push @$rowref, undef
+                } else {
+                    push @$rowref, "".$cell->text();
+                };
+            };
+
+            $max_datacol = max( $max_datacol, $#$rowref );
+        }
+
+# decrease $max_datacol if hidden columns within range
+        if ( ( ! $options{NoTruncate} ) and ( $options{DropHiddenColumns} ) ) {
+            for ( 1..scalar grep { $_ <= $max_datacol } @hidden_cols ) {
+                $max_datacol--;
+            }
+        }
+# truncate/expand table to $max_datarow and $max_datacol
+        if ( ! $options{NoTruncate} ) {
+            $#{$tableref} = $max_datarow;
+            foreach ( @{$tableref} ) {
+                $#{$_} = $max_datacol;
+            }
+        }
+# set up alternative data structure
+        if ( $options{OrderBySheet} ) {
+            push @worksheets, (
+                {
+                    label   => $table,
+                    data    => \@{$workbook{$table}},
+                }
+            );
+        };
+    };
 
     $p->setTwigHandlers( \%handlers );
 
-    my $ref = ref($source);
-    my $xml;
-    my $method = 'parse';
+#    my $ref = ref($source);
+#    my $xml;
+#    my $method = 'parse';
+#
+#    if( ! $ref ) {
+#        # Specified by filename .
+#        $workbook{File} = $source;
+#
+#        if( $source =~ m!\.xml$i ) {
+#            # XXX also handle some option that specifies that we want to
+#            #     parse raw XML here
+#            $method = 'parsefile';
+#            $xml = $source;
+#
+#        } else {
+#            $xml = $self->_open_sxc( $source )
+#        };
+#
+#    } else {
+#        if ( $ref eq 'SCALAR' ) {
+#            # Specified by a scalar buffer.
+#            # XXX We create a copy here. Maybe we should be able to feed
+#            #     this to XML::Twig without creating (another) copy here?
+#            #     Or will CoW save us here anyway?
+#            $xml = $$source;
+#            $workbook{File} = undef;
+#
+#        } elsif ( $ref eq 'ARRAY' ) {
+#            # Specified by file content
+#            $workbook{File} = undef;
+#            $xml = join( '', @$source );
+#
+#        } else {
+#             # Assume filehandle
+#             # Kick off XML::Twig from Filehandle
+#             $xml = $self->_open_sxc_fh( $source );
+#         }
+#    }
 
-    if( ! $ref ) {
-        # Specified by filename .
-        $workbook{File} = $source;
-
-        if( $source =~ m!\.xml$i ) {
-            # XXX also handle some option that specifies that we want to
-            #     parse raw XML here
-            $method = 'parsefile';
-            $xml = $source;
-
-        } else {
-            $xml = $self->_open_sxc( $source )
-        };
-
-    } else {
-        if ( $ref eq 'SCALAR' ) {
-            # Specified by a scalar buffer.
-            # XXX We create a copy here. Maybe we should be able to feed
-            #     this to XML::Twig without creating (another) copy here?
-            #     Or will CoW save us here anyway?
-            $xml = $$source;
-            $workbook{File} = undef;
-
-        } elsif ( $ref eq 'ARRAY' ) {
-            # Specified by file content
-            $workbook{File} = undef;
-            $xml = join( '', @$source );
-
-        } else {
-             # Assume filehandle
-             # Kick off XML::Twig from Filehandle
-             $xml = $self->_open_sxc_fh( $source );
-         }
-    }
-
+    my $xml = $self->_open_sxc( $source );
     $p->parse( $xml );
+
+    \%workbook
 };
 
 sub _fetch_cell_value {
@@ -238,39 +245,40 @@ sub _fetch_cell_value {
 
     $element->value()
 
-=begin later
-    if ( ( $tag eq "table:table-cell" ) or ( $tag eq "table:covered-table-cell" ) ) {
-# assign currency, date or time value to current workbook cell if requested
-        if ( ( $self->StandardCurrency ) and ( length( $currency_value ) ) ) {
-            $workbook{$table}[$row][$col] = $currency_value;
-            $currency_value = '';
+#=for later
+#    if ( ( $tag eq "table:table-cell" ) or ( $tag eq "table:covered-table-cell" ) ) {
+## assign currency, date or time value to current workbook cell if requested
+#        if ( ( $self->StandardCurrency ) and ( length( $currency_value ) ) ) {
+#            $workbook{$table}[$row][$col] = $currency_value;
+#            $currency_value = '';
+#
+#        }
+#        elsif ( ( $options{StandardDate} ) and ( $date_value ) ) {
+#            $workbook{$table}[$row][$col] = $date_value;
+#            $date_value = '';
+#        }
+#        elsif ( ( $options{StandardTime} ) and ( $time_value ) ) {
+#            $workbook{$table}[$row][$col] = $time_value;
+#            $time_value = '';
+#        }
+## join cell contents and assign to current workbook cell
+#        else {
+#            $workbook{$table}[$row][$col] = @cell ? join $options{ReplaceNewlineWith} || "",
+#                map { defined($_) ? $_ : '' } @cell : undef;
+#        }
+## repeat current cell, if necessary
+#        for (2..$repeat_cells) {
+#            $col++;
+#            $workbook{$table}[$row][$col] = $workbook{$table}[$row][$col - 1];
+#        }
+## reset cell and paragraph values to default for next cell
+#        @cell = ();
+#        $repeat_cells = 1;
+#        $text_p = -1;
+#    }
+#
+#=cut
 
-        }
-        elsif ( ( $options{StandardDate} ) and ( $date_value ) ) {
-            $workbook{$table}[$row][$col] = $date_value;
-            $date_value = '';
-        }
-        elsif ( ( $options{StandardTime} ) and ( $time_value ) ) {
-            $workbook{$table}[$row][$col] = $time_value;
-            $time_value = '';
-        }
-# join cell contents and assign to current workbook cell
-        else {
-            $workbook{$table}[$row][$col] = @cell ? join $options{ReplaceNewlineWith} || "",
-                map { defined($_) ? $_ : '' } @cell : undef;
-        }
-# repeat current cell, if necessary
-        for (2..$repeat_cells) {
-            $col++;
-            $workbook{$table}[$row][$col] = $workbook{$table}[$row][$col - 1];
-        }
-# reset cell and paragraph values to default for next cell
-        @cell = ();
-        $repeat_cells = 1;
-        $text_p = -1;
-    }
-
-=cut
 };
 
 sub _open_sxc {
@@ -284,7 +292,7 @@ sub _open_sxc {
 }
 
 sub _open_sxc_fh {
-    my ($fh, $options_ref) = @_;
+    my ($self, $fh, $options_ref) = @_;
     my $zip = Archive::Zip->new();
     my $status = $zip->readFromFileHandle($fh);
     $status == AZ_OK

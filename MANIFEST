@@ -9,6 +9,7 @@ META.json
 META.yml			Module meta-data (added by MakeMaker)
 README
 t/00-load.t
+t/01-parseods.t
 t/02-read-fh.t
 t/02-read-xml-file.t
 t/03-error-handling.t
