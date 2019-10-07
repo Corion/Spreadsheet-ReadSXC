@@ -178,16 +178,13 @@ sub parse {
                                        ;
 
                         if( $type ) {
-                            $row_has_content = 1
+                            $row_has_content = 1;
                         };
 
-                        if( $type eq 'currency' and $self->StandardCurrency ) {
+                        if( $type =~ qr/^(float|percentage|currency)$/ and $self->StandardCurrency ) {
                             $text = $value
 
                         } elsif( $type eq 'date' and $self->StandardDate ) {
-                            $text = $value
-
-                        } elsif( $type =~ qr/^(float|percentage)/ ) {
                             $text = $value
 
                         } else {
