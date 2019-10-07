@@ -146,7 +146,9 @@ sub handle_end {
     my ($expat, $element) = @_;
     if ( $element eq "text:p" ) {
         if( ! $expat->within_element('office:annotation') ) {
-            $cell[ $text_p ] ||= undef;
+            if( ! defined $cell[ $text_p ] ) {
+                $cell[ $text_p ] = undef
+            };
         };
     }
     elsif ( $element eq "table:table") {

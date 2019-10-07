@@ -1,5 +1,10 @@
 Revision history for Perl extension Spreadsheet::ReadSXC.
 
+0.24  2019-xx-xx
+    - Fix parsing the text of cells that only contain "0"
+      These were returned as undef, instead of 0 unless the StandardCurrency
+      option was used.
+
 0.23  2019-10-03
     - Add a test and fix for files with text in annotations - these caused
       a crash

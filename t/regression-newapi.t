@@ -427,7 +427,7 @@ my $expected = {
                          'Jun'
                        ],
                        [
-                         '',
+                         '0',
                          '0.07',
                          undef,
                          'Berlin',
