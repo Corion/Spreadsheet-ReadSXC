@@ -932,13 +932,13 @@ $workbook_ref = Spreadsheet::ReadSXC::read_sxc("$d/NewAPI.ods", {    StandardCur
 my $expected = {
            '2D' => [
                      [
-                       '0.0883249840644768',
-                       '2000-04-24',
-                       '2000-04-24',
-                       '2000-04-24',
-                       '2000-04-24',
-                       '2000-04-24',
-                       '2000-04-24',
+                       undef,
+                       undef,
+                       undef,
+                       undef,
+                       undef,
+                       undef,
+                       undef,
                        undef,
                        undef,
                        undef,

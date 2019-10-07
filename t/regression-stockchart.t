@@ -216,8 +216,8 @@ $workbook_ref = Spreadsheet::ReadSXC::read_sxc("$d/StockChart.ods", {    Standar
 $expected = {
            'Sheet1' => [
                          [
-                           '98',
-                           '2000-04-24',
+                           undef,
+                           'Fun Microsystems (FUNW)',
                            undef,
                            undef,
                            undef,

@@ -139,6 +139,22 @@ sub handle_start {
     elsif ( $element eq "table:table" ) {
 # get name of current table
         $table = $attributes{'table:name'};
+
+# Reset all the internal value-keepers
+        $row = -1;
+        $col = -1;
+        $text_p = -1;
+        @cell = ();
+        $repeat_cells = 1;
+        $repeat_rows = 1;
+        $row_hidden = 0;
+        $date_value = '';
+        $time_value = '';
+        $currency_value = '';
+        $max_datarow = -1;
+        $max_datacol = -1;
+        $col_count = -1;
+        @hidden_cols = ();
     }
 }
 
