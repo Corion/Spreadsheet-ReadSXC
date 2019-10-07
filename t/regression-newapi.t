@@ -1,5 +1,5 @@
 use strict;
-use Test::More tests => 2;
+use Test::More tests => 5;
 use File::Basename 'dirname';
 use Spreadsheet::ReadSXC;
 use XML::Parser;
@@ -924,12 +924,13 @@ my $expected = {
 is_deeply $workbook_ref, $expected, "NewAPI.ods gets parsed identically"
     or diag Dumper $workbook_ref;
 
-$workbook_ref = Spreadsheet::ReadSXC::read_sxc("$d/NewAPI.ods", {    StandardCurrency    => 1,
+$workbook_ref = Spreadsheet::ReadSXC::read_sxc("$d/NewAPI.ods",
+{   StandardCurrency    => 1,
     StandardDate        => 1,
     StandardTime        => 1,
 });
 
-my $expected = {
+$expected = {
            '2D' => [
                      [
                        undef,
@@ -1844,3 +1845,7 @@ my $expected = {
 is_deeply $workbook_ref, $expected, "NewAPI.ods gets parsed identically with standardized values"
     or diag Dumper $workbook_ref;
 
+for my $key (qw(2D 3D Data)) {
+    is_deeply $workbook_ref->{$key}, $expected->{$key}, "NewAPI.ods gets parsed identically with standardized values ($key)"
+        or diag Dumper $workbook_ref->{$key};
+};

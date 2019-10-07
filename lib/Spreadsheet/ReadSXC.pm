@@ -12,6 +12,7 @@ our $VERSION = '0.24';
 use Archive::Zip ':ERROR_CODES';
 use XML::Parser;
 use Carp qw(croak);
+use Spreadsheet::ParseODS;
 
 my %workbook = ();
 my @worksheets = ();
@@ -37,12 +38,14 @@ sub zip_error_handler {}
 
 sub read_sxc ($;$) {
     my ($sxc_file, $options_ref) = @_;
-    if( !$options_ref->{StrictErrors}) {
-        -f $sxc_file && -s _ or return undef;
-    };
-    open my $fh, '<', $sxc_file
-        or croak "Couldn't open '$sxc_file': $!";
-    read_sxc_fh( $fh, $options_ref );
+    #if( !$options_ref->{StrictErrors}) {
+    #    -f $sxc_file && -s _ or return undef;
+    #};
+    #open my $fh, '<', $sxc_file
+    #    or croak "Couldn't open '$sxc_file': $!";
+    #read_sxc_fh( $fh, $options_ref );
+    Spreadsheet::ParseODS->new(%$options_ref)
+    ->parse( $sxc_file );
 }
 
 sub read_sxc_fh {

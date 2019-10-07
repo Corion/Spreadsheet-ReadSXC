@@ -53,7 +53,6 @@ has 'twig' => (
 
 sub parse {
     my( $self, $source, $formatter ) = @_;
-
     my $p = $self->twig;
 
     # Convert to ref, later
@@ -110,7 +109,7 @@ sub parse {
 
     $handlers{ "table:table" } = sub {
         my( $twig, $table ) = @_;
-# reset table, column, and row values to default for this table
+
         my $max_datarow = -1;
         my $max_datacol = -1;
         @hidden_cols = ();
@@ -147,40 +146,94 @@ sub parse {
 # if number-rows-repeated is set, set $repeat_rows value accordingly for later use
 
             my $rowref = [];
-            push @$tableref, $rowref;
-            #print "row $rowref";
-
-            $max_datarow++;
 
             my $repeat = $row->att('table:number-rows-repeated');
             if( defined $repeat ) {
                 $repeat_rows = $repeat;
             };
 
+            my $row_has_content = 0;
+
+            # Do we really only want to add a cell if it contains text?!
+            my $colnum = -1;
             for my $cell ($row->findnodes("./table:table-cell | ./table:covered-table-cell")) {
-                if( $cell->is_empty ) {
-                    push @$rowref, undef
-                } else {
-                    push @$rowref, "".$cell->text();
+                my $repeat = $cell->att('table:number-columns-repeated') || 1;
+                for my $i (1..$repeat) {
+                    # Yes, this is somewhat inefficient, but it saves us
+                    # from later programming errors if we create/store
+                    # references. We can always later turn this inside-out.
+                    $colnum++;
+                    if( $cell->is_empty ) {
+                        push @$rowref, undef
+                    } else {
+                        my ($text,$type, $value);
+
+                        $type =     $cell->{att}->{"office:value-type"} # ODS
+                                 || $cell->{att}->{"table:value-type"}  # SXC
+                                 || '' ;
+                        ($value) = grep { defined($_) }
+                                       $cell->{att}->{"office:value"}, # ODS
+                                       $cell->{att}->{"table:value"},  # SXC
+                                       $cell->{att}->{"office:date-value"}, # ODS
+                                       $cell->{att}->{"table:date-value"},  # SXC
+                                       ;
+
+                        if( $type ) {
+                            $row_has_content = 1
+                        };
+
+                        if( $type eq 'currency' and $self->StandardCurrency ) {
+                            $text = $value
+
+                        } elsif( $type eq 'date' and $self->StandardDate ) {
+                            $text = $value
+
+                        } elsif( $type =~ qr/^(float|percentage)/ ) {
+                            $text = $value
+
+                        } else {
+                            my @text = $cell->findnodes('text:p');
+                            if( @text ) {
+                                for my $line (@text) {
+                                    #$row_has_content = 1;
+                                    $max_datacol = max( $max_datacol, $colnum );
+                                    $text = '' if ! defined $text;
+                                    $text .= ''.$line->text;
+                                };
+                            } else {
+                                $text = $value;
+                            };
+                            $row_has_content = $row_has_content || defined $text;
+                        };
+                        push @$rowref, $text;
+                    };
                 };
             };
-
-            $max_datacol = max( $max_datacol, $#$rowref );
+            if( $row_has_content ) {
+                push @$tableref, $rowref;
+                $max_datarow++;
+                $max_datacol = max( $max_datacol, $#$rowref );
+            };
         }
 
-# decrease $max_datacol if hidden columns within range
+        # decrease $max_datacol if hidden columns within range
         if ( ( ! $options{NoTruncate} ) and ( $options{DropHiddenColumns} ) ) {
             for ( 1..scalar grep { $_ <= $max_datacol } @hidden_cols ) {
                 $max_datacol--;
             }
         }
-# truncate/expand table to $max_datarow and $max_datacol
+
+        # truncate/expand table to $max_datarow and $max_datacol
         if ( ! $options{NoTruncate} ) {
             $#{$tableref} = $max_datarow;
             foreach ( @{$tableref} ) {
                 $#{$_} = $max_datacol;
             }
         }
+
+        @$tableref = ()
+            if $max_datacol == 0;
+
 # set up alternative data structure
         if ( $options{OrderBySheet} ) {
             push @worksheets, (
