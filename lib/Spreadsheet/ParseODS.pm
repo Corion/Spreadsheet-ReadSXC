@@ -10,6 +10,7 @@ use Carp qw(croak);
 use List::Util 'max';
 
 our $VERSION = '0.23';
+our @CARP_NOT = (qw(XML::Twig));
 
 use Filter::signatures;
 use feature 'signatures';
@@ -155,7 +156,7 @@ sub parse {
                 $repeat_rows = $repeat;
             };
 
-            my $row_has_content = 1;
+            #my $row_has_content = 1;
 
             # Do we really only want to add a cell if it contains text?!
             my $colnum = -1;
@@ -264,6 +265,9 @@ sub _open_xml_thing( $self, $source ) {
     if( ! $ref ) {
         # Specified by filename .
         # $workbook{File} = $source;
+
+        croak "Undef ODS source given"
+            unless defined $source;
 
         if( $source =~ m!(\.xml|\.fods)!i ) {
             # XXX also handle some option that specifies that we want to

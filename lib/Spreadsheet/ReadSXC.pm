@@ -14,6 +14,8 @@ use XML::Parser;
 use Carp qw(croak);
 use Spreadsheet::ParseODS;
 
+our @CARP_NOT = qw(Spreadsheet::ParseODS);
+
 my %workbook = ();
 my @worksheets = ();
 my @sheet_order = ();
@@ -68,8 +70,16 @@ sub read_xml_string ($;$) {
 sub _parse_xml {
     my ($internal_options, $options_ref, $xml_thing) = @_;
 
-    my $workbook = Spreadsheet::ParseODS->new(%$options_ref)
+    my $workbook;
+    my $ok = eval {
+        $workbook = Spreadsheet::ParseODS->new(%$options_ref)
                    ->parse( $xml_thing );
+        1;
+   };
+   if( my $err = $@ and $options_ref->{ StrictErrors } ) {
+       die "$@\n"
+   };
+   return unless $workbook;
 
     # Cut off trailing columns if any
     # Down-convert from ::Cell to raw values, depending on the options
@@ -84,7 +94,7 @@ sub _parse_xml {
             for my $c ($s->col_min..$s->col_max) {
                 # Depending on what type we want, use ->value or ->unformatted
                 # depending on $options_ref->{ ... }
-                $rs->[$c] = $s->get_cell( $r,$c )->value;
+                $rs->[$r]->[$c] = $s->get_cell( $r,$c )->value;
             }
         }
     };
