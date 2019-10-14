@@ -48,6 +48,8 @@ my %module = (
 
     PREREQ_PM => {
         'Carp'               => 0,
+        'PerlX::Maybe'       => 0,
+        'Filter::signatures' => '0.13',
         'Archive::Zip'       => '1.34', # for seekable streams, verified thanks to Backpan
         'PerlIO::gzip'       => 0,
         'XML::Twig::XPath'   => 0,
