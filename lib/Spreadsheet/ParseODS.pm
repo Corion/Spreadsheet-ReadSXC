@@ -280,8 +280,6 @@ sub _open_xml_thing( $self, $source, $wb_info, %options ) {
 
         $wb_info->{filename} = $source;
         if( $source =~ m!(\.xml|\.fods)!i or ($options{ inputtype } and $options{ inputtype } =~ m!^(xml|fods)$! )) {
-            # XXX also handle some option that specifies that we want to
-            #     parse raw XML here
             $method = 'parsefile';
             $xml = $source;
 
@@ -292,9 +290,9 @@ sub _open_xml_thing( $self, $source, $wb_info, %options ) {
     } else {
         if ( $ref eq 'SCALAR' ) {
             # Specified by a scalar buffer.
-            # XXX We create a copy here. Maybe we should be able to feed
-            #     this to XML::Twig without creating (another) copy here?
-            #     Or will CoW save us here anyway?
+            # We create a copy here. Maybe we should be able to feed
+            # this to XML::Twig without creating (another) copy here?
+            # Or will CoW save us here anyway?
 
             if( ($options{ inputtype } and $options{ inputtype } =~ m!^(xml|fods)$! )) {
                 $xml = $$source;
