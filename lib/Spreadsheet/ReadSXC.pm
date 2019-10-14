@@ -65,7 +65,7 @@ sub read_xml_file ($;$) {
 
 sub read_xml_string ($;$) {
     my ($xml_string, $options_ref) = @_;
-    _parse_xml( { type => 'xml' }, $options_ref, $xml_string );
+    _parse_xml( { type => 'xml' }, $options_ref, \$xml_string );
 }
 
 sub _parse_xml {
