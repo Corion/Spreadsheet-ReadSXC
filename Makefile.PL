@@ -51,6 +51,7 @@ my %module = (
         'Archive::Zip'       => '1.34', # for seekable streams, verified thanks to Backpan
         'PerlIO::gzip'       => 0,
         'XML::Twig::XPath'   => 0,
+        'Storable'           => 0,
     },
     TEST_REQUIRES => {
         'Test::More'     => 0,

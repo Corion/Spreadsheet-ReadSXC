@@ -8,6 +8,7 @@ use XML::Parser;
 use XML::Twig::XPath;
 use Carp qw(croak);
 use List::Util 'max';
+use Storable 'dclone';
 
 our $VERSION = '0.23';
 our @CARP_NOT = (qw(XML::Twig));
@@ -60,8 +61,6 @@ sub parse {
     my @worksheets = ();
     my @sheet_order = ();
     my @cell = ();
-    my $repeat_cells = 1;
-    my $repeat_rows = 1;
     my $row_hidden = 0;
     my $max_datarow = -1;
     my $max_datacol = -1;
@@ -143,9 +142,10 @@ sub parse {
 
             my $rowref = [];
 
+            my $repeat_row = 0;
             my $repeat = $row->att('table:number-rows-repeated');
             if( defined $repeat ) {
-                $repeat_rows = $repeat;
+                $repeat_row = $repeat -1;
             };
 
             #my $row_has_content = 1;
@@ -200,10 +200,14 @@ sub parse {
                     };
                 };
             };
-            #if( $row_has_content and @$rowref) {
+
             push @$tableref, $rowref;
             $max_datarow++;
-            #};
+
+            for my $r (1..$repeat_row) {
+                push @$tableref, dclone( $rowref );
+                $max_datarow++;
+            };
         }
 
         # decrease $max_datacol if hidden columns within range
