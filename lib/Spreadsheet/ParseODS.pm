@@ -53,7 +53,16 @@ has 'twig' => (
 =cut
 
 sub parse {
-    my( $self, $source, $formatter ) = @_;
+    my( $self, $source, @options ) = @_;
+    my %options;
+    my $formatter;
+    if( @options % 2 == 0 ) {
+        %options = @options
+    } elsif( @options == 1 ) {
+        ($formatter) = @options;
+    } else {
+        croak "Odd number of values passed to \%options hash";
+    };
     my $p = $self->twig;
 
     # Convert to ref, later
@@ -244,28 +253,33 @@ sub parse {
 
     $p->setTwigHandlers( \%handlers );
 
-    my ($method, $xml) = $self->_open_xml_thing( $source );
+    my $options = {};
+    my ($method, $xml) = $self->_open_xml_thing( $source,
+                                                 $options,
+                                                 inputtype => $options{ inputtype }
+                         );
     $p->$method( $xml );
 
     return Spreadsheet::ParseODS::Workbook->new(
+        %$options,
         _worksheets => \%workbook,
         _sheets => \@worksheets
     );
 };
 
-sub _open_xml_thing( $self, $source ) {
+sub _open_xml_thing( $self, $source, $wb_info, %options ) {
     my $ref = ref($source);
     my $xml;
     my $method = 'parse';
 
     if( ! $ref ) {
         # Specified by filename .
-        # $workbook{File} = $source;
 
         croak "Undef ODS source given"
             unless defined $source;
 
-        if( $source =~ m!(\.xml|\.fods)!i ) {
+        $wb_info->{filename} = $source;
+        if( $source =~ m!(\.xml|\.fods)!i or ($options{ inputtype } and $options{ inputtype } =~ m!^(xml|fods)$! )) {
             # XXX also handle some option that specifies that we want to
             #     parse raw XML here
             $method = 'parsefile';
@@ -281,13 +295,23 @@ sub _open_xml_thing( $self, $source ) {
             # XXX We create a copy here. Maybe we should be able to feed
             #     this to XML::Twig without creating (another) copy here?
             #     Or will CoW save us here anyway?
-            $xml = $$source;
-            #$workbook{File} = undef;
+
+            if( ($options{ inputtype } and $options{ inputtype } =~ m!^(xml|fods)$! )) {
+                $xml = $$source;
+            } else {
+                open my $fh, '<', $source;
+                $xml = $self->_open_sxc_fh( $fh );
+            };
 
         } elsif ( $ref eq 'ARRAY' ) {
             # Specified by file content
-            #$workbook{File} = undef;
-            $xml = join( '', @$source );
+            if( ($options{ inputtype } and $options{ inputtype } =~ m!^(xml|fods)$! )) {
+                $xml = join( '', @$source );
+            } else {
+                my $content = join( '', @$source );
+                open my $fh, '<', $content;
+                $xml = $self->_open_sxc_fh( $fh );
+            };
 
         } else {
              # Assume filehandle
@@ -306,11 +330,11 @@ sub _open_sxc {
     };
     open my $fh, '<', $sxc_file
         or croak "Couldn't open '$sxc_file': $!";
-    return $self->_open_sxc_fh( $fh, $options_ref );
+    return $self->_open_sxc_fh( $fh );
 }
 
 sub _open_sxc_fh {
-    my ($self, $fh, $options_ref) = @_;
+    my ($self, $fh) = @_;
     my $zip = Archive::Zip->new();
     my $status = $zip->readFromFileHandle($fh);
     $status == AZ_OK

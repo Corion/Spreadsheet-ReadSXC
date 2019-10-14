@@ -13,6 +13,7 @@ use Archive::Zip ':ERROR_CODES';
 use XML::Parser;
 use Carp qw(croak);
 use Spreadsheet::ParseODS;
+use PerlX::Maybe;
 
 our @CARP_NOT = qw(Spreadsheet::ParseODS);
 
@@ -59,12 +60,12 @@ sub read_xml_file ($;$) {
     if( !$options_ref->{StrictErrors}) {
         -f $xml_file && -s _ or return undef;
     };
-    _parse_xml({ method => 'parsefile' }, $options_ref, $xml_file);
+    _parse_xml({ method => 'parsefile', type => 'xml' }, $options_ref, $xml_file);
 }
 
 sub read_xml_string ($;$) {
     my ($xml_string, $options_ref) = @_;
-    _parse_xml( {}, $options_ref, $xml_string );
+    _parse_xml( { type => 'xml' }, $options_ref, $xml_string );
 }
 
 sub _parse_xml {
@@ -72,14 +73,20 @@ sub _parse_xml {
 
     $options_ref ||= {};
 
+    my $type;
+    if( $internal_options->{ type } ) {
+        $type = $internal_options->{ type };
+    };
+
     my $line_sep = $options_ref->{ReplaceNewlineWith} || "";
 
     my $workbook;
     my $ok = eval {
         $workbook = Spreadsheet::ParseODS->new(
-                        line_separator => $line_sep,
-                        %$options_ref
-                    )->parse( $xml_thing );
+                       line_separator => $line_sep,
+                        %$options_ref,
+                    )->parse( $xml_thing,
+                              maybe inputtype => $type );
         1;
    };
    if( my $err = $@ and $options_ref->{ StrictErrors } ) {
