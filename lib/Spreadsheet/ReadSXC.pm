@@ -90,13 +90,14 @@ sub _parse_xml {
     for my $s ($workbook->worksheets) {
         my $rs = $res->{ $s->label } = [];
         for my $r ($s->row_min..$s->row_max) {
-            $rs->[$r] = [];
             for my $c ($s->col_min..$s->col_max) {
                 # Depending on what type we want, use ->value or ->unformatted
                 # depending on $options_ref->{ ... }
+                $rs->[$r] ||= [];
 
                 my $cell = $s->get_cell( $r,$c );
                 my ($method,$type) = ('value',$cell->type);
+                $type ||= '';
 
                 if( $options_ref->{StandardCurrency} and $type =~ qr/^(float|currency|percentage)/) {
                     $method = 'unformatted';
