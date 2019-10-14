@@ -32,7 +32,7 @@ and Spreadsheet::ParseXLS
 
 =cut
 
-has 'ReplaceNewlineWith'   => ( is => 'ro', default => "", );
+has 'line_separator'       => ( is => 'ro', default => "\n", );
 has 'IncludeCoveredCells'  => ( is => 'ro', default => 0,  );
 has 'DropHiddenRows'       => ( is => 'ro', default => 0,  );
 has 'DropHiddenColumns'    => ( is => 'ro', default => 0,  );
@@ -184,7 +184,7 @@ sub parse {
 
                         my @text = $cell->findnodes('text:p');
                         if( @text ) {
-                            $text = join '', map { $_->text } @text;
+                            $text = join $self->line_separator, map { $_->text } @text;
                             $max_datacol = max( $max_datacol, $colnum );
                         } else {
                             $text = $unformatted;

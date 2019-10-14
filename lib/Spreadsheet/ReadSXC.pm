@@ -70,10 +70,16 @@ sub read_xml_string ($;$) {
 sub _parse_xml {
     my ($internal_options, $options_ref, $xml_thing) = @_;
 
+    $options_ref ||= {};
+
+    my $line_sep = $options_ref->{ReplaceNewlineWith} || "";
+
     my $workbook;
     my $ok = eval {
-        $workbook = Spreadsheet::ParseODS->new(%$options_ref)
-                   ->parse( $xml_thing );
+        $workbook = Spreadsheet::ParseODS->new(
+                        line_separator => $line_sep,
+                        %$options_ref
+                    )->parse( $xml_thing );
         1;
    };
    if( my $err = $@ and $options_ref->{ StrictErrors } ) {
