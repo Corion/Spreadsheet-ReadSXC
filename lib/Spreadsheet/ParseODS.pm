@@ -11,6 +11,10 @@ use List::Util 'max';
 
 our $VERSION = '0.23';
 
+use Filter::signatures;
+use feature 'signatures';
+no warnings 'experimental::signatures';
+
 =head1 NAME
 
 Spreadsheet::ParseODS - read SXC and ODS files
@@ -113,7 +117,7 @@ sub parse {
         my $max_datacol = -1;
         @hidden_cols = ();
 
-        my $tablename = $table->{att}->{'table:name'};
+        my $tablename = $table->att('table:name');
         my $tableref = $workbook{ $tablename } = [];
         my $table_hidden = $table->att( 'table:visibility' );
 
@@ -151,7 +155,7 @@ sub parse {
                 $repeat_rows = $repeat;
             };
 
-            my $row_has_content = 0;
+            my $row_has_content = 1;
 
             # Do we really only want to add a cell if it contains text?!
             my $colnum = -1;
@@ -163,14 +167,18 @@ sub parse {
                     # references. We can always later turn this inside-out.
                     $colnum++;
                     if( $cell->is_empty ) {
-                        push @$rowref, undef
+                        push @$rowref, Spreadsheet::ParseODS::Cell->new({
+                            type        => undef,
+                            unformatted => undef,
+                            value       => undef,
+                        });
                     } else {
-                        my ($text,$type, $value);
+                        my ($text,$type,$unformatted);
 
                         $type =     $cell->{att}->{"office:value-type"} # ODS
                                  || $cell->{att}->{"table:value-type"}  # SXC
                                  || '' ;
-                        ($value) = grep { defined($_) }
+                        ($unformatted) = grep { defined($_) }
                                        $cell->{att}->{"office:value"}, # ODS
                                        $cell->{att}->{"table:value"},  # SXC
                                        $cell->{att}->{"office:date-value"}, # ODS
@@ -178,46 +186,31 @@ sub parse {
                                        ;
 
                         if( $type ) {
-                            $row_has_content = 1;
+                            # $row_has_content = 1;
                         };
 
-                        if( $type =~ qr/^(float|percentage|currency)$/ and $self->StandardCurrency ) {
-                            $text = $value
-
-                        } elsif( $type eq 'date' and $self->StandardDate ) {
-                            $text = $value
-
+                        my @text = $cell->findnodes('text:p');
+                        if( @text ) {
+                            $text = join '', map { $_->text } @text;
+                            $max_datacol = max( $max_datacol, $colnum );
                         } else {
-                            my @text = $cell->findnodes('text:p');
-                            if( @text ) {
-                                for my $line (@text) {
-                                    #$row_has_content = 1;
-                                    $max_datacol = max( $max_datacol, $colnum );
-                                    $text = '' if ! defined $text;
-                                    $text .= ''.$line->text;
-                                };
-                            } else {
-                                $text = $value;
-                            };
+                            $text = $unformatted;
+                        };
 
-                            #if( defined $text ) {
-                                $row_has_content = 1;
-                            #};
-                        };
-                        push @$rowref, $text;
-                        if( defined $text ) {
-                            #if( $#$rowref > $max_datacol ) {
-                            #    warn "New length: " . Dumper $rowref;
-                            #};
-                            $max_datacol = max( $max_datacol, $#$rowref );
-                        };
+                        my $cell = Spreadsheet::ParseODS::Cell->new({
+                            value       => $text,
+                            unformatted => $unformatted,
+                            type        => $type,
+                        });
+
+                        push @$rowref, $cell;
                     };
                 };
             };
-            if( $row_has_content and @$rowref) {
-                push @$tableref, $rowref;
-                $max_datarow++;
-            };
+            #if( $row_has_content and @$rowref) {
+            push @$tableref, $rowref;
+            $max_datarow++;
+            #};
         }
 
         # decrease $max_datacol if hidden columns within range
@@ -238,105 +231,73 @@ sub parse {
         @$tableref = ()
             if $max_datacol == 0;
 
-# set up alternative data structure
-        if ( $self->OrderBySheet ) {
-            push @worksheets, (
-                {
-                    label   => $table,
-                    data    => \@{$workbook{$table}},
-                }
-            );
-        };
+        my $ws = Spreadsheet::ParseODS::Worksheet->new({
+                label => $tablename,
+                data  => \@{$workbook{$tablename}},
+                col_min => 0,
+                col_max => $max_datacol,
+                row_min => 0,
+                row_max => $max_datarow,
+        });
+
+        # set up alternative data structure
+        push @worksheets, $ws;
+        $workbook{ $tablename } = $ws;
     };
 
     $p->setTwigHandlers( \%handlers );
 
-#    my $ref = ref($source);
-#    my $xml;
-#    my $method = 'parse';
-#
-#    if( ! $ref ) {
-#        # Specified by filename .
-#        $workbook{File} = $source;
-#
-#        if( $source =~ m!\.xml$i ) {
-#            # XXX also handle some option that specifies that we want to
-#            #     parse raw XML here
-#            $method = 'parsefile';
-#            $xml = $source;
-#
-#        } else {
-#            $xml = $self->_open_sxc( $source )
-#        };
-#
-#    } else {
-#        if ( $ref eq 'SCALAR' ) {
-#            # Specified by a scalar buffer.
-#            # XXX We create a copy here. Maybe we should be able to feed
-#            #     this to XML::Twig without creating (another) copy here?
-#            #     Or will CoW save us here anyway?
-#            $xml = $$source;
-#            $workbook{File} = undef;
-#
-#        } elsif ( $ref eq 'ARRAY' ) {
-#            # Specified by file content
-#            $workbook{File} = undef;
-#            $xml = join( '', @$source );
-#
-#        } else {
-#             # Assume filehandle
-#             # Kick off XML::Twig from Filehandle
-#             $xml = $self->_open_sxc_fh( $source );
-#         }
-#    }
+    my ($method, $xml) = $self->_open_xml_thing( $source );
+    $p->$method( $xml );
 
-    my $xml = $self->_open_sxc( $source );
-    $p->parse( $xml );
-
-    \%workbook
+    return Spreadsheet::ParseODS::Workbook->new(
+        _worksheets => \%workbook,
+        _sheets => \@worksheets
+    );
 };
 
-sub _fetch_cell_value {
-    my( $self, $element ) = @_;
-    my $className = $element->tag;
+sub _open_xml_thing( $self, $source ) {
+    my $ref = ref($source);
+    my $xml;
+    my $method = 'parse';
 
-    $element->value()
+    if( ! $ref ) {
+        # Specified by filename .
+        # $workbook{File} = $source;
 
-#=for later
-#    if ( ( $tag eq "table:table-cell" ) or ( $tag eq "table:covered-table-cell" ) ) {
-## assign currency, date or time value to current workbook cell if requested
-#        if ( ( $self->StandardCurrency ) and ( length( $currency_value ) ) ) {
-#            $workbook{$table}[$row][$col] = $currency_value;
-#            $currency_value = '';
-#
-#        }
-#        elsif ( ( $options{StandardDate} ) and ( $date_value ) ) {
-#            $workbook{$table}[$row][$col] = $date_value;
-#            $date_value = '';
-#        }
-#        elsif ( ( $options{StandardTime} ) and ( $time_value ) ) {
-#            $workbook{$table}[$row][$col] = $time_value;
-#            $time_value = '';
-#        }
-## join cell contents and assign to current workbook cell
-#        else {
-#            $workbook{$table}[$row][$col] = @cell ? join $options{ReplaceNewlineWith} || "",
-#                map { defined($_) ? $_ : '' } @cell : undef;
-#        }
-## repeat current cell, if necessary
-#        for (2..$repeat_cells) {
-#            $col++;
-#            $workbook{$table}[$row][$col] = $workbook{$table}[$row][$col - 1];
-#        }
-## reset cell and paragraph values to default for next cell
-#        @cell = ();
-#        $repeat_cells = 1;
-#        $text_p = -1;
-#    }
-#
-#=cut
+        if( $source =~ m!(\.xml|\.fods)!i ) {
+            # XXX also handle some option that specifies that we want to
+            #     parse raw XML here
+            $method = 'parsefile';
+            $xml = $source;
 
-};
+        } else {
+            $xml = $self->_open_sxc( $source )
+        };
+
+    } else {
+        if ( $ref eq 'SCALAR' ) {
+            # Specified by a scalar buffer.
+            # XXX We create a copy here. Maybe we should be able to feed
+            #     this to XML::Twig without creating (another) copy here?
+            #     Or will CoW save us here anyway?
+            $xml = $$source;
+            #$workbook{File} = undef;
+
+        } elsif ( $ref eq 'ARRAY' ) {
+            # Specified by file content
+            #$workbook{File} = undef;
+            $xml = join( '', @$source );
+
+        } else {
+             # Assume filehandle
+             # Kick off XML::Twig from Filehandle
+             $xml = $self->_open_sxc_fh( $source );
+         }
+    }
+
+    return ($method, $xml)
+}
 
 sub _open_sxc {
     my ($self, $sxc_file, $options_ref) = @_;
@@ -360,5 +321,111 @@ sub _open_sxc_fh {
     binmode $stream => ':gzip(none)';
     $stream
 }
+
+package Spreadsheet::ParseODS::Workbook;
+use Moo 2;
+use Filter::signatures;
+use feature 'signatures';
+no warnings 'experimental::signatures';
+
+has 'filename' => (
+    is => 'rw',
+);
+
+has '_sheets' => (
+    is => 'lazy',
+    default => sub { {} },
+);
+
+has '_worksheets' => (
+    is => 'lazy',
+    default => sub { {} },
+);
+
+sub get_filename( $self ) {
+    $self->filename
+}
+
+sub worksheets( $self ) {
+    @{ $self->_sheets }
+};
+
+sub worksheet( $self, $name ) {
+    $self->_worksheets->{ $name }
+}
+
+package Spreadsheet::ParseODS::Worksheet;
+use Moo 2;
+use Filter::signatures;
+use feature 'signatures';
+no warnings 'experimental::signatures';
+
+has 'label' => (
+    is => 'rw'
+);
+
+has 'data' => (
+    is => 'rw'
+);
+
+has 'sheet_hidden' => (
+    is => 'rw',
+);
+
+has 'row_min' => (
+    is => 'rw',
+);
+
+has 'row_max' => (
+    is => 'rw',
+);
+
+has 'col_min' => (
+    is => 'rw',
+);
+
+has 'col_max' => (
+    is => 'rw',
+);
+
+sub get_cell( $self, $row, $col ) {
+    return undef if $row > $self->row_max;
+    return undef if $col > $self->col_max;
+    $self->data->[ $row ]->[ $col ]
+}
+
+sub get_name( $self ) {
+    $self->name
+}
+
+sub is_sheet_hidden( $self ) {
+    $self->sheet_hidden
+}
+
+sub row_range( $self ) {
+    return ($self->row_min, $self->row_max)
+}
+
+sub col_range( $self ) {
+    return ($self->col_min, $self->col_max)
+}
+
+package Spreadsheet::ParseODS::Cell;
+use Moo 2;
+use Filter::signatures;
+use feature 'signatures';
+no warnings 'experimental::signatures';
+
+has 'value' => (
+    is => 'rw',
+);
+
+has 'unformatted' => (
+    is => 'rw',
+);
+
+has 'type' => (
+    is => 'rw',
+);
 
 1;
