@@ -36,11 +36,6 @@ has 'IncludeCoveredCells'  => ( is => 'ro', default => 0,  );
 has 'DropHiddenRows'       => ( is => 'ro', default => 0,  );
 has 'DropHiddenColumns'    => ( is => 'ro', default => 0,  );
 has 'NoTruncate'           => ( is => 'ro', default => 0,  );
-has 'StandardCurrency'     => ( is => 'ro', default => 0,  );
-has 'StandardDate'         => ( is => 'ro', default => 0,  );
-has 'StandardTime'         => ( is => 'ro', default => 0,  );
-has 'OrderBySheet'         => ( is => 'ro', default => 0,  );
-has 'StrictErrors'         => ( is => 'ro', default => 0,  );
 
 has 'twig' => (
     is => 'lazy',
@@ -68,9 +63,6 @@ sub parse {
     my $repeat_cells = 1;
     my $repeat_rows = 1;
     my $row_hidden = 0;
-    my $date_value = '';
-    my $time_value = '';
-    my $currency_value = '';
     my $max_datarow = -1;
     my $max_datacol = -1;
     my $col_count = -1;

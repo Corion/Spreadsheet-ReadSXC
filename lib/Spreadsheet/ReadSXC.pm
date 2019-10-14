@@ -94,7 +94,21 @@ sub _parse_xml {
             for my $c ($s->col_min..$s->col_max) {
                 # Depending on what type we want, use ->value or ->unformatted
                 # depending on $options_ref->{ ... }
-                $rs->[$r]->[$c] = $s->get_cell( $r,$c )->value;
+
+                my $cell = $s->get_cell( $r,$c );
+                my ($method,$type) = ('value',$cell->type);
+
+                if( $options_ref->{StandardCurrency} and $type =~ qr/^(float|currency|percentage)/) {
+                    $method = 'unformatted';
+                };
+                if( $options_ref->{StandardDate} and $type =~ qr/^(date)/) {
+                    $method = 'unformatted';
+                };
+                if( $options_ref->{StandardTime} and $type =~ qr/^(time)/) {
+                    $method = 'unformatted';
+                };
+
+                $rs->[$r]->[$c] = $s->get_cell( $r,$c )->$method;
             }
         }
     };
