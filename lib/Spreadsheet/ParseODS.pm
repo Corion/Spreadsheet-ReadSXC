@@ -54,6 +54,30 @@ has 'table_styles' => (
     default => sub { {} },
 );
 
+# -----------------------------------------------------------------------------
+# col2int (for Spreadsheet::ParseExcel::Utility)
+#------------------------------------------------------------------------------
+# converts a excel row letter into an int for use in an array
+sub col2int {
+    my $result = 0;
+    my $str    = shift;
+    my $incr   = 0;
+
+    for ( my $i = length($str) ; $i > 0 ; $i-- ) {
+        my $char = substr( $str, $i - 1 );
+        my $curr += ord( lc($char) ) - ord('a') + 1;
+        $curr *= $incr if ($incr);
+        $result += $curr;
+        $incr   += 26;
+    }
+
+    # this is one out as we range 0..x-1 not 1..x
+    $result--;
+
+    return $result;
+}
+
+
 =head2 C<< ->parse >>
 
 =cut
@@ -139,6 +163,13 @@ sub parse {
                         || '';
                 $table_hidden = $display eq 'false' ? 1 : undef;
             };
+        };
+
+        my $print_area;
+        # we currently only support one
+        if( my $print_area_attr = $table->att( 'table:print-ranges' )) {
+            my( $w, $n, $e, $s ) = ($print_area_attr =~ /\.([A-Z]+)(\d+)(?::|$)/g);
+            $print_area = [ $n-1, col2int($w), $s-1, col2int($e) ];
         };
 
         # Look at table:column and decide other stuff
@@ -259,6 +290,7 @@ sub parse {
         my $ws = Spreadsheet::ParseODS::Worksheet->new({
                 label => $tablename,
                 sheet_hidden => $table_hidden,
+                print_area   => $print_area,
                 data  => \@{$workbook{$tablename}},
                 col_min => 0,
                 col_max => $max_datacol,
@@ -369,6 +401,7 @@ use Filter::signatures;
 use feature 'signatures';
 no warnings 'experimental::signatures';
 
+
 has 'filename' => (
     is => 'rw',
 );
@@ -382,6 +415,10 @@ has '_worksheets' => (
     is => 'lazy',
     default => sub { {} },
 );
+
+sub get_print_areas( $self ) {
+    [ map { $_->get_print_area } $self->worksheets ]
+}
 
 sub get_filename( $self ) {
     $self->filename
@@ -429,6 +466,10 @@ has 'col_max' => (
     is => 'rw',
 );
 
+has 'print_area' => (
+    is => 'rw',
+);
+
 sub get_cell( $self, $row, $col ) {
     return undef if $row > $self->row_max;
     return undef if $col > $self->col_max;
@@ -449,6 +490,24 @@ sub row_range( $self ) {
 
 sub col_range( $self ) {
     return ($self->col_min, $self->col_max)
+}
+
+=head2 C<< get_print_area() >>
+
+    my $print_areas = $worksheet->get_print_area();
+    # [ $start_row, $start_col, $end_row, $end_col ]
+
+The get_print_area() method returns the print area
+of the sheet as an arrayref.
+
+Returns undef if there are no print areas.
+
+Currently only one print area is supported.
+
+=cut
+
+sub get_print_area($self) {
+    my $ar = $self->print_area;
 }
 
 package Spreadsheet::ParseODS::Cell;
