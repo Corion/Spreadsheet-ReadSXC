@@ -57,6 +57,7 @@ my %module = (
         'XML::XPathEngine'   => 0,
         'XML::Twig::XPath'   => 0,
         'Storable'           => 0,
+        'Moo'                => 2,
     },
     TEST_REQUIRES => {
         'Test::More'     => 0,

@@ -35,6 +35,7 @@
             "Archive::Zip" : "1.34",
             "Carp" : "0",
             "Filter::signatures" : "0.13",
+            "Moo" : "2",
             "PerlIO::gzip" : "0",
             "PerlX::Maybe" : "0",
             "Storable" : "0",
