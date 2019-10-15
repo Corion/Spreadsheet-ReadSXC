@@ -17,6 +17,7 @@ t/04-hidden-sheet.t
 t/04-text-outside-xml.t
 t/05-print-area.t
 t/06-cell-hyperlink.t
+t/07-print-headings.t
 t/1.t
 t/hidden-cols.ods
 t/hidden-rows.ods
@@ -26,6 +27,7 @@ t/NewAPI.ods
 t/regression-hidden-cols.t
 t/regression-hidden-rows.t
 t/print-area.ods
+t/print-titles.ods
 t/regression-newapi.t
 t/regression-stockchart.t
 t/StockChart.ods

@@ -203,6 +203,25 @@ sub parse {
 #        }
 #    };
 
+        # Collect information on header columns
+        my ($header_col_start, $header_col_end) = (undef,undef);
+        my $colnum = -1;
+        for my $col ($table->findnodes('.//table:table-column')) {
+            $colnum++;
+
+            my $repeat = $col->att('table:number-columns-repeated') || 0;
+            $repeat-- if $repeat;
+
+            if( $col->parent->tag eq 'table:table-header-columns' ) {
+                $header_col_start = $colnum
+                    unless defined $header_col_start;
+                $header_col_end = $colnum+$repeat;
+            } else {
+                $colnum += $repeat;
+            };
+        };
+
+        my ($header_row_start, $header_row_end) = (undef,undef);
         for my $row ($table->findnodes('.//table:table-row')) {
             my $row_hidden = $table->att( 'table:visibility' );
 # if row is hidden, set $row_hidden for later use
@@ -278,11 +297,18 @@ sub parse {
             push @$tableref, $rowref;
             $max_datarow++;
 
+            if( $row->parent->tag eq 'table:table-header-rows' ) {
+                $header_row_start = $#$tableref
+                    unless defined $header_row_start;
+                $header_row_end = $#$tableref;
+            };
+
             for my $r (1..$repeat_row) {
                 push @$tableref, dclone( $rowref );
                 $max_datarow++;
             };
         }
+
 
         # decrease $max_datacol if hidden columns within range
         if ( ( ! $self->NoTruncate ) and ( $self->DropHiddenColumns ) ) {
@@ -302,6 +328,15 @@ sub parse {
         @$tableref = ()
             if $max_datacol < 0;
 
+        my $header_rows;
+        if( defined $header_row_start ) {
+            $header_rows = [$header_row_start, $header_row_end];
+        };
+        my $header_cols;
+        if( defined $header_col_start ) {
+            $header_cols = [$header_col_start, $header_col_end];
+        };
+
         my $ws = Spreadsheet::ParseODS::Worksheet->new({
                 label => $tablename,
                 sheet_hidden => $table_hidden,
@@ -311,6 +346,8 @@ sub parse {
                 col_max => $max_datacol,
                 row_min => 0,
                 row_max => $max_datarow,
+                header_rows => $header_rows,
+                header_cols => $header_cols,
         });
         # set up alternative data structure
         push @worksheets, $ws;
@@ -415,7 +452,7 @@ use Moo 2;
 use Filter::signatures;
 use feature 'signatures';
 no warnings 'experimental::signatures';
-
+use PerlX::Maybe;
 
 has 'filename' => (
     is => 'rw',
@@ -463,6 +500,7 @@ use Moo 2;
 use Filter::signatures;
 use feature 'signatures';
 no warnings 'experimental::signatures';
+use PerlX::Maybe;
 
 has 'label' => (
     is => 'rw'
@@ -493,6 +531,14 @@ has 'col_max' => (
 );
 
 has 'print_areas' => (
+    is => 'rw',
+);
+
+has 'header_rows' => (
+    is => 'rw',
+);
+
+has 'header_cols' => (
     is => 'rw',
 );
 
@@ -532,6 +578,17 @@ Returns undef if there are no print areas.
 
 sub get_print_areas($self) {
     my $ar = $self->print_areas;
+}
+
+sub get_print_titles( $self ) {
+    my $hr = $self->header_rows;
+    my $hc = $self->header_cols;
+    my $res = {
+        maybe Row    => $hr,
+        maybe Column => $hc,
+    };
+    return unless scalar keys %$res;
+    return $res
 }
 
 package Spreadsheet::ParseODS::Cell;
