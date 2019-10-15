@@ -3,7 +3,6 @@ use Test::More tests => 10;
 use File::Basename 'dirname';
 use Spreadsheet::ReadSXC;
 use Archive::Zip;
-use XML::Parser;
 use Data::Dumper;
 
 my $d = dirname($0);
