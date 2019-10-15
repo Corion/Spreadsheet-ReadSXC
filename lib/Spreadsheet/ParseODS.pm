@@ -77,6 +77,16 @@ sub col2int {
     return $result;
 }
 
+sub _parse_printareas( $self, $printarea ) {
+    my $res = [];
+
+    while( $printarea =~ m!(?:'[^']+'|\w+)\.([A-Z]+)(\d+):(?:'[^']+'|\w+)\.([A-Z]+)(\d+)(?: |$)!gc) {
+        my( $w, $n, $e, $s ) = ($1,$2,$3,$4);
+        push @$res, [ $n-1, col2int($w), $s-1, col2int($e)];
+    };
+
+    return $res
+}
 
 =head2 C<< ->parse >>
 
@@ -165,11 +175,10 @@ sub parse {
             };
         };
 
-        my $print_area;
+        my $print_areas;
         # we currently only support one
         if( my $print_area_attr = $table->att( 'table:print-ranges' )) {
-            my( $w, $n, $e, $s ) = ($print_area_attr =~ /\.([A-Z]+)(\d+)(?::|$)/g);
-            $print_area = [ $n-1, col2int($w), $s-1, col2int($e) ];
+            $print_areas = $self->_parse_printareas($print_area_attr);
         };
 
         # Look at table:column and decide other stuff
@@ -290,7 +299,7 @@ sub parse {
         my $ws = Spreadsheet::ParseODS::Worksheet->new({
                 label => $tablename,
                 sheet_hidden => $table_hidden,
-                print_area   => $print_area,
+                print_areas  => $print_areas,
                 data  => \@{$workbook{$tablename}},
                 col_min => 0,
                 col_max => $max_datacol,
@@ -416,8 +425,19 @@ has '_worksheets' => (
     default => sub { {} },
 );
 
+=head2 C<< get_print_areas() >>
+
+    my $print_areas = $workbook->get_print_areas();
+    # [[ [$start_row, $start_col, $end_row, $end_col], ... ]]
+
+The C<< ->get_print_areas() >> method returns the print areas
+of each sheet as an arrayref of arrayrefs. If a sheet has no
+print area, C<undef> is returned for its print area.
+
+=cut
+
 sub get_print_areas( $self ) {
-    [ map { $_->get_print_area } $self->worksheets ]
+    [ map { $_->get_print_areas } $self->worksheets ]
 }
 
 sub get_filename( $self ) {
@@ -466,7 +486,7 @@ has 'col_max' => (
     is => 'rw',
 );
 
-has 'print_area' => (
+has 'print_areas' => (
     is => 'rw',
 );
 
@@ -492,22 +512,20 @@ sub col_range( $self ) {
     return ($self->col_min, $self->col_max)
 }
 
-=head2 C<< get_print_area() >>
+=head2 C<< get_print_areas() >>
 
-    my $print_areas = $worksheet->get_print_area();
-    # [ $start_row, $start_col, $end_row, $end_col ]
+    my $print_areas = $worksheet->get_print_areas();
+    # [ [$start_row, $start_col, $end_row, $end_col], ... ]
 
-The get_print_area() method returns the print area
+The C<< ->get_print_areas() >> method returns the print areas
 of the sheet as an arrayref.
 
 Returns undef if there are no print areas.
 
-Currently only one print area is supported.
-
 =cut
 
-sub get_print_area($self) {
-    my $ar = $self->print_area;
+sub get_print_areas($self) {
+    my $ar = $self->print_areas;
 }
 
 package Spreadsheet::ParseODS::Cell;
