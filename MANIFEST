@@ -20,6 +20,9 @@ t/06-cell-hyperlink.t
 t/07-print-headings.t
 t/1.t
 t/hidden-cols.ods
+t/hidden-cols.fods
+t/hidden-cols.ods
+t/hidden-rows.fods
 t/hidden-rows.ods
 t/hidden-sheet.ods
 t/hyperlink.ods

@@ -52,6 +52,7 @@ my %module = (
         'Filter::signatures' => '0.13',
         'Archive::Zip'       => '1.34', # for seekable streams, verified thanks to Backpan
         'PerlIO::gzip'       => 0,
+        'XML::Twig'          => 0,
         'XML::XPath'         => 0,
         'XML::XPathEngine'   => 0,
         'XML::Twig::XPath'   => 0,
