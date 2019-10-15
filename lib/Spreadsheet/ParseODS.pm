@@ -48,6 +48,12 @@ has 'twig' => (
     },
 );
 
+# The styles that identify whether a table is hidden, and other styles
+has 'table_styles' => (
+    is      => 'lazy',
+    default => sub { {} },
+);
+
 =head2 C<< ->parse >>
 
 =cut
@@ -111,6 +117,11 @@ sub parse {
 #        }
 #    };
 
+    $handlers{ "//office:automatic-styles/style:style" } = sub {
+        my( $twig, $style ) = @_;
+        $self->table_styles->{ $style->att('style:name') } = $style;
+    };
+
     $handlers{ "table:table" } = sub {
         my( $twig, $table ) = @_;
 
@@ -120,7 +131,15 @@ sub parse {
 
         my $tablename = $table->att('table:name');
         my $tableref = $workbook{ $tablename } = [];
-        my $table_hidden = $table->att( 'table:visibility' );
+        my $table_hidden = $table->att( 'table:visibility' ); # SXC
+        if( my $style_name = $table->att('table:style-name')) {
+            my $style = $self->table_styles->{$style_name};
+            if( my $prop = $style->first_child('style:table-properties')) {
+                my $display = $prop->att('table:display')
+                        || '';
+                $table_hidden = $display eq 'false' ? 1 : undef;
+            };
+        };
 
         # Look at table:column and decide other stuff
 #    $handlers{ "table:table-column" } = sub {
@@ -239,13 +258,13 @@ sub parse {
 
         my $ws = Spreadsheet::ParseODS::Worksheet->new({
                 label => $tablename,
+                sheet_hidden => $table_hidden,
                 data  => \@{$workbook{$tablename}},
                 col_min => 0,
                 col_max => $max_datacol,
                 row_min => 0,
                 row_max => $max_datarow,
         });
-
         # set up alternative data structure
         push @worksheets, $ws;
         $workbook{ $tablename } = $ws;
