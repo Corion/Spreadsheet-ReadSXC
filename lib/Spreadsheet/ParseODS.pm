@@ -250,6 +250,12 @@ sub parse {
                             # $row_has_content = 1;
                         };
 
+                        my $hyperlink;
+                        my @hyperlink = $cell->findnodes('.//text:a');
+                        if( @hyperlink ) {
+                            $hyperlink = $hyperlink[0]->att('xlink:href');
+                        };
+
                         my @text = $cell->findnodes('text:p');
                         if( @text ) {
                             $text = join $self->line_separator, map { $_->text } @text;
@@ -262,13 +268,13 @@ sub parse {
                             value       => $text,
                             unformatted => $unformatted,
                             type        => $type,
+                            hyperlink   => $hyperlink,
                         });
 
                         push @$rowref, $cell;
                     };
                 };
             };
-
             push @$tableref, $rowref;
             $max_datarow++;
 
@@ -294,7 +300,7 @@ sub parse {
         }
 
         @$tableref = ()
-            if $max_datacol == 0;
+            if $max_datacol < 0;
 
         my $ws = Spreadsheet::ParseODS::Worksheet->new({
                 label => $tablename,
@@ -545,5 +551,13 @@ has 'unformatted' => (
 has 'type' => (
     is => 'rw',
 );
+
+has 'hyperlink' => (
+    is => 'rw',
+);
+
+sub get_hyperlink( $self ) {
+    $self->hyperlink
+}
 
 1;
