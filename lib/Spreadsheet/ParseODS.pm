@@ -357,11 +357,17 @@ sub parse {
     $p->setTwigHandlers( \%handlers );
 
     my $options = {};
-    my ($method, $xml) = $self->_open_xml_thing( $source,
-                                                 $options,
-                                                 inputtype => $options{ inputtype }
+    my ($method, $xml) = $self->_open_xml_thing(
+                            $source,
+                            $options,
+                            inputtype => $options{ inputtype }
                          );
     $p->$method( $xml );
+
+    # Consider reading /settings.xml in addition, to fill stuff like ActiveSheet
+    # <config:config-item config:name="ActiveTable" config:type="string">Sheet3</config:config-item>
+
+    # Also maybe read /meta.xml for the remaining information
 
     return Spreadsheet::ParseODS::Workbook->new(
         %$options,
