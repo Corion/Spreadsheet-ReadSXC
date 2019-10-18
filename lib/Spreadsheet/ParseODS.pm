@@ -204,15 +204,20 @@ sub parse {
         for my $col ($table->findnodes('.//table:table-column')) {
             $colnum++;
 
-            my $repeat = $col->att('table:number-columns-repeated') || 0;
-            $repeat-- if $repeat;
+            my $repeat = $col->att('table:number-columns-repeated') || 1;
 
             if( $col->parent->tag eq 'table:table-header-columns' ) {
                 $header_col_start = $colnum
                     unless defined $header_col_start;
-                $header_col_end = $colnum+$repeat;
+                $header_col_end = $colnum+$repeat-1;
             } else {
                 $colnum += $repeat;
+            };
+
+            # if columns is hidden, add column number to @hidden_cols array for later use
+            my $col_visibility = $col->att('table:visibility') || '';
+            for (1..$repeat) {
+                push @hidden_cols, $col_visibility eq 'collapse';
             };
         };
 
@@ -345,6 +350,7 @@ sub parse {
                 header_rows => $header_rows,
                 header_cols => $header_cols,
                 hidden_rows => \@hidden_rows,
+                hidden_cols => \@hidden_cols,
         });
         # set up alternative data structure
         push @worksheets, $ws;
@@ -550,6 +556,10 @@ has 'hidden_rows' => (
     is => 'rw',
 );
 
+has 'hidden_cols' => (
+    is => 'rw',
+);
+
 sub get_cell( $self, $row, $col ) {
     return undef if $row > $self->row_max;
     return undef if $col > $self->col_max;
@@ -603,6 +613,12 @@ sub is_row_hidden( $self, $rownum=undef ) {
     wantarray ? @{ $self->hidden_rows }
               : $self->hidden_rows->[ $rownum ]
 }
+
+sub is_col_hidden( $self, $colnum=undef ) {
+    wantarray ? @{ $self->hidden_cols }
+              : $self->hidden_cols->[ $colnum ]
+}
+
 
 package Spreadsheet::ParseODS::Cell;
 use Moo 2;

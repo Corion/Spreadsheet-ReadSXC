@@ -17,6 +17,7 @@ t/04-hidden-sheet.t
 t/04-text-outside-xml.t
 t/05-print-area.t
 t/06-cell-hyperlink.t
+t/07-hidden-cols.t
 t/07-hidden-rows.t
 t/07-print-headings.t
 t/1.t
