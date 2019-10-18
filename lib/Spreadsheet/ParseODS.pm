@@ -286,11 +286,6 @@ sub parse {
                     };
                 };
             };
-            if( $row->parent->tag eq 'table:table-header-rows' ) {
-                $header_row_start = $#$tableref
-                    unless defined $header_row_start;
-                $header_row_end = $#$tableref;
-            };
 
             # if number-rows-repeated is set, set $repeat_rows value accordingly for later use
             my $row_repeat = $row->att('table:number-rows-repeated') || 1;
@@ -300,10 +295,17 @@ sub parse {
                 push @hidden_rows, $row_hidden;
                 $max_datarow++;
             };
+
+            if( $row->parent->tag eq 'table:table-header-rows' ) {
+                $header_row_start = $#$tableref
+                    unless defined $header_row_start;
+                $header_row_end = $#$tableref;
+            };
         }
 
 
         # decrease $max_datacol if hidden columns within range
+        # This logic is broken now that @hidden_cols contains bools, not col indices
         if ( ( ! $self->NoTruncate ) and ( $self->DropHiddenColumns ) ) {
             for ( 1..scalar grep { $_ <= $max_datacol } @hidden_cols ) {
                 $max_datacol--;
