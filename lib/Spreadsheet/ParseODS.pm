@@ -114,7 +114,6 @@ sub parse {
     my $max_datarow = -1;
     my $max_datacol = -1;
     my $col_count = -1;
-    my @hidden_cols = ();
 
     my %handlers;
 
@@ -161,7 +160,7 @@ sub parse {
 
         my $max_datarow = -1;
         my $max_datacol = -1;
-        @hidden_cols = ();
+        my @hidden_cols = ();
 
         my $tablename = $table->att('table:name');
         my $tableref = $workbook{ $tablename } = [];
