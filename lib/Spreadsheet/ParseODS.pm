@@ -156,6 +156,7 @@ sub parse {
         my $max_datarow = -1;
         my $max_datacol = -1;
         my @hidden_cols = ();
+        my @hidden_rows = ();
 
         my $tablename = $table->att('table:name');
         my $tableref = $workbook{ $tablename } = [];
@@ -217,12 +218,11 @@ sub parse {
 
         my ($header_row_start, $header_row_end) = (undef,undef);
         for my $row ($table->findnodes('.//table:table-row')) {
-            my $row_hidden = $table->att( 'table:visibility' );
-# if row is hidden, set $row_hidden for later use
-# if number-rows-repeated is set, set $repeat_rows value accordingly for later use
+            my $row_hidden = $row->att( 'table:visibility' ) || '';
 
             my $rowref = [];
 
+            # if number-rows-repeated is set, set $repeat_rows value accordingly for later use
             my $repeat_row = 0;
             my $repeat = $row->att('table:number-rows-repeated');
             if( defined $repeat ) {
@@ -289,6 +289,7 @@ sub parse {
                 };
             };
             push @$tableref, $rowref;
+            push @hidden_rows, $row_hidden eq 'collapse';
             $max_datarow++;
 
             if( $row->parent->tag eq 'table:table-header-rows' ) {
@@ -299,6 +300,7 @@ sub parse {
 
             for my $r (1..$repeat_row) {
                 push @$tableref, dclone( $rowref );
+                push @hidden_rows, $row_hidden;
                 $max_datarow++;
             };
         }
@@ -342,6 +344,7 @@ sub parse {
                 row_max => $max_datarow,
                 header_rows => $header_rows,
                 header_cols => $header_cols,
+                hidden_rows => \@hidden_rows,
         });
         # set up alternative data structure
         push @worksheets, $ws;
@@ -543,6 +546,10 @@ has 'header_cols' => (
     is => 'rw',
 );
 
+has 'hidden_rows' => (
+    is => 'rw',
+);
+
 sub get_cell( $self, $row, $col ) {
     return undef if $row > $self->row_max;
     return undef if $col > $self->col_max;
@@ -590,6 +597,11 @@ sub get_print_titles( $self ) {
     };
     return unless scalar keys %$res;
     return $res
+}
+
+sub is_row_hidden( $self, $rownum=undef ) {
+    wantarray ? @{ $self->hidden_rows }
+              : $self->hidden_rows->[ $rownum ]
 }
 
 package Spreadsheet::ParseODS::Cell;
