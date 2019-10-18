@@ -220,7 +220,19 @@ sub parse {
         };
 
         my ($header_row_start, $header_row_end) = (undef,undef);
-        for my $row ($table->findnodes('.//table:table-row')) {
+        my @rows = $table->findnodes('.//table:table-row');
+        # Optimization hack: Find the last row that contains something
+        # This is necessary because a formatted column extends 1.000.000 rows
+        # downwards
+        my $last_payload_row = $#rows;
+        while( $last_payload_row >= 0
+               and !$rows[ $last_payload_row ]->findnodes('*[@office:value-type] | *[@table:value-type] | .//text:p')) {
+            $last_payload_row--
+        };
+
+        # Cut away the empty rows
+        splice @rows, $last_payload_row+1;
+
             my $row_hidden = $row->att( 'table:visibility' ) || '';
 
             my $rowref = [];
