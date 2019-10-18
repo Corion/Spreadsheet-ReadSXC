@@ -8,9 +8,9 @@ use XML::Parser;
 use XML::Twig::XPath;
 use Carp qw(croak);
 use List::Util 'max';
-use Storable 'dclone';
+#use Storable 'dclone';
 
-our $VERSION = '0.23';
+our $VERSION = '0.24';
 our @CARP_NOT = (qw(XML::Twig));
 
 use Filter::signatures;
