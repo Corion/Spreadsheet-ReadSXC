@@ -161,12 +161,14 @@ sub parse {
         my $tablename = $table->att('table:name');
         my $tableref = $workbook{ $tablename } = [];
         my $table_hidden = $table->att( 'table:visibility' ); # SXC
+        my $tab_color;
         if( my $style_name = $table->att('table:style-name')) {
             my $style = $self->table_styles->{$style_name};
             if( my $prop = $style->first_child('style:table-properties')) {
                 my $display = $prop->att('table:display')
                         || '';
                 $table_hidden = $display eq 'false' ? 1 : undef;
+                $tab_color = $prop->att('tableooo:tab-color');
             };
         };
 
@@ -199,12 +201,20 @@ sub parse {
 #    };
 
         # Collect information on header columns
+        my @column_default_styles;
         my ($header_col_start, $header_col_end) = (undef,undef);
         my $colnum = -1;
         for my $col ($table->findnodes('.//table:table-column')) {
             $colnum++;
 
             my $repeat = $col->att('table:number-columns-repeated') || 1;
+
+            if( my $style = $col->att('table:default-cell-style-name')) {
+                push @column_default_styles, ($style) x $repeat;
+            } else {
+                push @column_default_styles, (undef) x $repeat;
+            };
+
             if( $col->parent->tag eq 'table:table-header-columns' ) {
                 $header_col_start = $colnum
                     unless defined $header_col_start;
@@ -233,6 +243,7 @@ sub parse {
         # Cut away the empty rows
         splice @rows, $last_payload_row+1;
 
+        for my $row (@rows) {
             my $row_hidden = $row->att( 'table:visibility' ) || '';
 
             my $rowref = [];
@@ -240,9 +251,12 @@ sub parse {
             #my $row_has_content = 1;
 
             # Do we really only want to add a cell if it contains text?!
-            my $colnum = -1;
             for my $cell ($row->findnodes("./table:table-cell | ./table:covered-table-cell")) {
-                my $style_name = $cell->att('table:style-name');
+                my $colnum = @$rowref;
+                my $style_name =    $cell->att('table:style-name')
+                                 || $column_default_styles[ $colnum ];
+                                 # If there are repeats, they will respect
+                                 # changing styles anyway
 
                 my ($text);
                 my $type =     $cell->att("office:value-type") # ODS
@@ -353,6 +367,7 @@ sub parse {
 
         my $ws = Spreadsheet::ParseODS::Worksheet->new({
                 label => $tablename,
+                tab_color => $tab_color,
                 sheet_hidden => $table_hidden,
                 print_areas  => $print_areas,
                 data  => \@{$workbook{$tablename}},
@@ -573,6 +588,10 @@ has 'hidden_cols' => (
     is => 'rw',
 );
 
+has 'tab_color' => (
+    is => 'rw',
+);
+
 sub get_cell( $self, $row, $col ) {
     return undef if $row > $self->row_max;
     return undef if $col > $self->col_max;
@@ -581,6 +600,10 @@ sub get_cell( $self, $row, $col ) {
 
 sub get_name( $self ) {
     $self->name
+}
+
+sub get_tab_color( $self ) {
+    $self->tab_color
 }
 
 sub is_sheet_hidden( $self ) {
@@ -656,6 +679,10 @@ has 'hyperlink' => (
 );
 
 has 'format' => (
+    is => 'rw',
+);
+
+has 'style' => (
     is => 'rw',
 );
 

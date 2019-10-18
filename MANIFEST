@@ -20,8 +20,11 @@ t/06-cell-hyperlink.t
 t/07-hidden-cols.t
 t/07-hidden-rows.t
 t/07-print-headings.t
+t/08-color.t
 t/1.t
 t/hidden-cols.ods
+t/colors.fods
+t/colors.ods
 t/hidden-cols.fods
 t/hidden-cols.ods
 t/hidden-rows.fods
