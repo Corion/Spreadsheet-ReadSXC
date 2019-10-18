@@ -109,11 +109,6 @@ sub parse {
     my %workbook = ();
     my @worksheets = ();
     my @sheet_order = ();
-    my @cell = ();
-    my $row_hidden = 0;
-    my $max_datarow = -1;
-    my $max_datacol = -1;
-    my $col_count = -1;
 
     my %handlers;
 
