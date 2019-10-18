@@ -23,6 +23,7 @@ t/07-print-headings.t
 t/08-color.t
 t/1.t
 t/hidden-cols.ods
+t/active-sheet-2.ods
 t/colors.fods
 t/colors.ods
 t/formats.ods
