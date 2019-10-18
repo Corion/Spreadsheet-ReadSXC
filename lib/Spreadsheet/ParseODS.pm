@@ -227,13 +227,6 @@ sub parse {
 
             my $rowref = [];
 
-            # if number-rows-repeated is set, set $repeat_rows value accordingly for later use
-            my $repeat_row = 0;
-            my $repeat = $row->att('table:number-rows-repeated');
-            if( defined $repeat ) {
-                $repeat_row = $repeat -1;
-            };
-
             #my $row_has_content = 1;
 
             # Do we really only want to add a cell if it contains text?!
@@ -293,18 +286,17 @@ sub parse {
                     };
                 };
             };
-            push @$tableref, $rowref;
-            push @hidden_rows, $row_hidden eq 'collapse';
-            $max_datarow++;
-
             if( $row->parent->tag eq 'table:table-header-rows' ) {
                 $header_row_start = $#$tableref
                     unless defined $header_row_start;
                 $header_row_end = $#$tableref;
             };
 
-            for my $r (1..$repeat_row) {
-                push @$tableref, dclone( $rowref );
+            # if number-rows-repeated is set, set $repeat_rows value accordingly for later use
+            my $row_repeat = $row->att('table:number-rows-repeated') || 1;
+            for my $r (1..$row_repeat) {
+                # dclone() the row unless there are no more repeated rows
+                push @$tableref, $r < $row_repeat ? dclone( $rowref ) : $rowref;
                 push @hidden_rows, $row_hidden;
                 $max_datarow++;
             };
