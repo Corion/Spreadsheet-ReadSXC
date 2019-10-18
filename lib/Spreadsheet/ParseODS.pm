@@ -230,47 +230,52 @@ sub parse {
             # Do we really only want to add a cell if it contains text?!
             my $colnum = -1;
             for my $cell ($row->findnodes("./table:table-cell | ./table:covered-table-cell")) {
+                my $style_name = $cell->att('table:style-name');
+
+                my ($text);
+                my $type =     $cell->att("office:value-type") # ODS
+                            || $cell->att("table:value-type")  # SXC
+                            || '' ;
+                my ($unformatted) = grep { defined($_) }
+                               $cell->att("office:value"), # ODS
+                               $cell->att("table:value"),  # SXC
+                               $cell->att("office:date-value"), # ODS
+                               $cell->att("table:date-value"),  # SXC
+                               ;
+
+                my $hyperlink;
+                my @hyperlink = $cell->findnodes('.//text:a');
+                if( @hyperlink ) {
+                    $hyperlink = $hyperlink[0]->att('xlink:href');
+                };
+
                 my $repeat = $cell->att('table:number-columns-repeated') || 1;
+
+                my @text = $cell->findnodes('text:p');
+                if( @text ) {
+                    $text = join $self->line_separator, map { $_->text } @text;
+                    $max_datacol = max( $max_datacol, $#$rowref+$repeat );
+                } else {
+                    $text = $unformatted;
+                };
+
                 for my $i (1..$repeat) {
                     # Yes, this is somewhat inefficient, but it saves us
                     # from later programming errors if we create/store
                     # references. We can always later turn this inside-out.
-                    $colnum++;
                     if( $cell->is_empty ) {
                         push @$rowref, Spreadsheet::ParseODS::Cell->new({
                             type        => undef,
                             unformatted => undef,
                             value       => undef,
+                            hyperlink   => undef,
+                            style       => undef,
                         });
-                    } else {
-                        my ($text,$type,$unformatted);
 
-                        $type =     $cell->{att}->{"office:value-type"} # ODS
-                                 || $cell->{att}->{"table:value-type"}  # SXC
-                                 || '' ;
-                        ($unformatted) = grep { defined($_) }
-                                       $cell->{att}->{"office:value"}, # ODS
-                                       $cell->{att}->{"table:value"},  # SXC
-                                       $cell->{att}->{"office:date-value"}, # ODS
-                                       $cell->{att}->{"table:date-value"},  # SXC
-                                       ;
+                    } else {
 
                         if( $type ) {
                             # $row_has_content = 1;
-                        };
-
-                        my $hyperlink;
-                        my @hyperlink = $cell->findnodes('.//text:a');
-                        if( @hyperlink ) {
-                            $hyperlink = $hyperlink[0]->att('xlink:href');
-                        };
-
-                        my @text = $cell->findnodes('text:p');
-                        if( @text ) {
-                            $text = join $self->line_separator, map { $_->text } @text;
-                            $max_datacol = max( $max_datacol, $colnum );
-                        } else {
-                            $text = $unformatted;
                         };
 
                         my $cell = Spreadsheet::ParseODS::Cell->new({
@@ -278,6 +283,7 @@ sub parse {
                             unformatted => $unformatted,
                             type        => $type,
                             hyperlink   => $hyperlink,
+                            style       => $style_name,
                         });
 
                         push @$rowref, $cell;
