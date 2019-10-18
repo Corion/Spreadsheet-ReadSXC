@@ -209,6 +209,9 @@ sub handle_end {
         if ( ( $options{DropHiddenRows} ) and ( $row_hidden == 1 ) ) {
             pop @{$workbook{$table}};
             $row--;
+            if( $max_datarow > $row ) {
+                $max_datarow = $row;
+            };
         }
 # repeat current row, if necessary
         else {
