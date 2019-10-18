@@ -368,6 +368,7 @@ sub parse {
     # <config:config-item config:name="ActiveTable" config:type="string">Sheet3</config:config-item>
 
     # Also maybe read /meta.xml for the remaining information
+    # Also maybe read /styles.xml for the cell formats
 
     return Spreadsheet::ParseODS::Workbook->new(
         %$options,
@@ -619,8 +620,16 @@ has 'hyperlink' => (
     is => 'rw',
 );
 
+has 'format' => (
+    is => 'rw',
+);
+
 sub get_hyperlink( $self ) {
     $self->hyperlink
+}
+
+sub get_format( $self ) {
+    $self->format
 }
 
 1;
