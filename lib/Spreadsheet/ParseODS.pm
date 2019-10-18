@@ -305,9 +305,12 @@ sub parse {
 
             # if number-rows-repeated is set, set $repeat_rows value accordingly for later use
             my $row_repeat = $row->att('table:number-rows-repeated') || 1;
+
             for my $r (1..$row_repeat) {
-                # dclone() the row unless there are no more repeated rows
-                push @$tableref, $r < $row_repeat ? dclone( $rowref ) : $rowref;
+                # clone the row unless there are no more repeated rows
+                #push @$tableref, $r < $row_repeat ? dclone( $rowref ) : $rowref;
+                # This is nasty but about 5 times faster than calling dclone()
+                push @$tableref, $r < $row_repeat ? [map { bless { %$_ } => 'Spreadsheet::ParseODS::Cell'; } @$rowref ]: $rowref;
                 push @hidden_rows, $row_hidden;
                 $max_datarow++;
             };
