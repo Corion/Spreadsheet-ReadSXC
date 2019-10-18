@@ -205,14 +205,12 @@ sub parse {
             $colnum++;
 
             my $repeat = $col->att('table:number-columns-repeated') || 1;
-
             if( $col->parent->tag eq 'table:table-header-columns' ) {
                 $header_col_start = $colnum
                     unless defined $header_col_start;
                 $header_col_end = $colnum+$repeat-1;
-            } else {
-                $colnum += $repeat;
             };
+            $colnum += $repeat;
 
             # if columns is hidden, add column number to @hidden_cols array for later use
             my $col_visibility = $col->att('table:visibility') || '';
