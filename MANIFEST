@@ -25,6 +25,7 @@ t/1.t
 t/hidden-cols.ods
 t/colors.fods
 t/colors.ods
+t/formats.ods
 t/hidden-cols.fods
 t/hidden-cols.ods
 t/hidden-rows.fods
