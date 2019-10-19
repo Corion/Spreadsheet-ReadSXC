@@ -103,12 +103,23 @@ sub _parse_xml {
     for my $s ($workbook->worksheets) {
         my $rs = $res->{ $s->label } = [];
         for my $r ($s->row_min..$s->row_max) {
+            if( $options_ref->{DropHiddenRows} and $s->is_row_hidden( $r ) ) {
+                next;
+            };
+
+            my $rowref;
             for my $c ($s->col_min..$s->col_max) {
                 # Depending on what type we want, use ->value or ->unformatted
                 # depending on $options_ref->{ ... }
-                $rs->[$r] ||= [];
+                if( ! $rowref ) {
+                    push @$rs, ($rowref = []);
+                };
 
                 my $cell = $s->get_cell( $r,$c );
+                if( $options_ref->{DropHiddenColumns} and $s->is_col_hidden($c)) {
+                    next;
+                };
+
                 my ($method,$type) = ('value',$cell->type);
                 $type ||= '';
 
@@ -122,7 +133,7 @@ sub _parse_xml {
                     $method = 'unformatted';
                 };
 
-                $rs->[$r]->[$c] = $s->get_cell( $r,$c )->$method;
+                push @$rowref, $s->get_cell( $r,$c )->$method;
             }
         }
     };
