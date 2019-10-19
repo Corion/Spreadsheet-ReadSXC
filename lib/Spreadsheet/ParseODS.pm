@@ -488,6 +488,14 @@ use feature 'signatures';
 no warnings 'experimental::signatures';
 use PerlX::Maybe;
 
+=head2 C<< ->filename >>
+
+  print $workbook->filename;
+
+The name of the file if applicable.
+
+=cut
+
 has 'filename' => (
     is => 'rw',
 );
