@@ -84,7 +84,7 @@ sub _parse_xml {
     my $ok = eval {
         $workbook = Spreadsheet::ParseODS->new(
                        line_separator => $line_sep,
-                        %$options_ref,
+                        #%$options_ref,
                     )->parse( $xml_thing,
                               maybe inputtype => $type );
         1;
