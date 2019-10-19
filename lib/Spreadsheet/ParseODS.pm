@@ -82,7 +82,27 @@ sub _parse_printareas( $self, $printarea ) {
     return $res
 }
 
-=head2 C<< ->parse >>
+=head2 C<< ->parse( %options ) >>
+
+    my $workbook = Spreadsheet::ParseODS->parse( 'example.ods' );
+
+Reads the spreadsheet into memory and returns the data as a
+L<Spreadsheet::ParseODS::Workbook> object.
+
+=head3 Options
+
+=over 4
+
+=item *
+
+B<readonly>
+
+Returns the spreadsheet as a readonly object. This allows some memory
+optimization by sharing values between repeated rows.
+
+(not yet implemented)
+
+=back
 
 =cut
 
