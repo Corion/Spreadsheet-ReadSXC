@@ -48,12 +48,6 @@ has 'twig' => (
     },
 );
 
-# The styles that identify whether a table is hidden, and other styles
-has 'table_styles' => (
-    is      => 'lazy',
-    default => sub { {} },
-);
-
 # -----------------------------------------------------------------------------
 # col2int (for Spreadsheet::ParseExcel::Utility)
 #------------------------------------------------------------------------------
@@ -109,6 +103,7 @@ sub parse {
     my %workbook = ();
     my @worksheets = ();
     my @sheet_order = ();
+    my %table_styles;
 
     my %handlers;
 
@@ -147,7 +142,7 @@ sub parse {
 
     $handlers{ "//office:automatic-styles/style:style" } = sub {
         my( $twig, $style ) = @_;
-        $self->table_styles->{ $style->att('style:name') } = $style;
+        $table_styles{ $style->att('style:name') } = $style;
     };
 
     $handlers{ "table:table" } = sub {
@@ -163,7 +158,7 @@ sub parse {
         my $table_hidden = $table->att( 'table:visibility' ); # SXC
         my $tab_color;
         if( my $style_name = $table->att('table:style-name')) {
-            my $style = $self->table_styles->{$style_name};
+            my $style = $table_styles{$style_name};
             if( my $prop = $style->first_child('style:table-properties')) {
                 my $display = $prop->att('table:display')
                         || '';
@@ -379,6 +374,7 @@ sub parse {
                 header_cols => $header_cols,
                 hidden_rows => \@hidden_rows,
                 hidden_cols => \@hidden_cols,
+                table_styles => \%table_styles,
         });
         # set up alternative data structure
         push @worksheets, $ws;
@@ -503,6 +499,17 @@ has '_sheets' => (
 
 has '_worksheets' => (
     is => 'lazy',
+    default => sub { {} },
+);
+
+=head2 C<< ->table_styles >>
+
+The styles that identify whether a table is hidden, and other styles
+
+=cut
+
+has 'table_styles' => (
+    is      => 'lazy',
     default => sub { {} },
 );
 
