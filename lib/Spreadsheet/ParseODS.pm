@@ -54,20 +54,47 @@ has 'twig' => (
 sub col2int {
     my $result = 0;
     my $str    = shift;
-    my $incr   = 0;
+    my $incr   = 1;
 
     for ( my $i = length($str) ; $i > 0 ; $i-- ) {
         my $char = substr( $str, $i - 1 );
         my $curr += ord( lc($char) ) - ord('a') + 1;
-        $curr *= $incr if ($incr);
+        $curr *= $incr;
         $result += $curr;
-        $incr   += 26;
+        $incr   *= 26;
     }
 
     # this is one out as we range 0..x-1 not 1..x
     $result--;
 
     return $result;
+}
+
+# -----------------------------------------------------------------------------
+# sheetRef (for Spreadsheet::ParseExcel::Utility)
+#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
+### sheetRef
+# convert an excel letter-number address into a useful array address
+# @note that also Excel uses X-Y notation, we normally use Y-X in arrays
+# @args $str, excel coord eg. A2
+# @returns an array - 2 elements - column, row, or undefined
+#
+sub sheetRef {
+    my $str = shift;
+    my @ret;
+
+    $str =~ m/^(\D+)(\d+)$/
+        or croak "Invalid cell address '$str'";
+
+    if ( $1 && $2 ) {
+        push( @ret, $2 - 1, col2int($1) );
+    }
+    if ( $ret[0] < 0 ) {
+        undef @ret;
+    }
+
+    return @ret;
 }
 
 sub _parse_printareas( $self, $printarea ) {
@@ -576,6 +603,7 @@ sub worksheet( $self, $name ) {
 
 package Spreadsheet::ParseODS::Worksheet;
 use Moo 2;
+use Carp qw(croak);
 use Filter::signatures;
 use feature 'signatures';
 no warnings 'experimental::signatures';
@@ -695,7 +723,6 @@ sub is_col_hidden( $self, $colnum=undef ) {
     wantarray ? @{ $self->hidden_cols }
               : $self->hidden_cols->[ $colnum ]
 }
-
 
 package Spreadsheet::ParseODS::Cell;
 use Moo 2;

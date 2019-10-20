@@ -23,6 +23,7 @@ t/07-print-headings.t
 t/08-color.t
 t/09-formula.t
 t/1.t
+t/10-wide-col2int.t
 t/active-sheet-2.ods
 t/colors.fods
 t/colors.ods
@@ -46,6 +47,7 @@ t/t-date.ods
 t/t-multiline.ods
 t/t.sxc
 t/text-outside-cell.xml
+t/wide.ods
 xt/99-changes.t
 xt/99-compile.t
 xt/99-manifest.t
