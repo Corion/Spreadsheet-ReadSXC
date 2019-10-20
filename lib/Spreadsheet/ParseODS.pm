@@ -283,6 +283,10 @@ sub parse {
                                $cell->att("office:date-value"), # ODS
                                $cell->att("table:date-value"),  # SXC
                                ;
+                my $formula = $cell->att("table:formula");
+                if( $formula ) {
+                    $formula =~ s!^of:!!;
+                };
 
                 my $hyperlink;
                 my @hyperlink = $cell->findnodes('.//text:a');
@@ -309,6 +313,7 @@ sub parse {
                             type        => undef,
                             unformatted => undef,
                             value       => undef,
+                            formula     => undef,
                             hyperlink   => undef,
                             style       => undef,
                         });
@@ -322,6 +327,7 @@ sub parse {
                         my $cell = Spreadsheet::ParseODS::Cell->new({
                             value       => $text,
                             unformatted => $unformatted,
+                            formula     => $formula,
                             type        => $type,
                             hyperlink   => $hyperlink,
                             style       => $style_name,
@@ -702,6 +708,10 @@ has 'value' => (
 );
 
 has 'unformatted' => (
+    is => 'rw',
+);
+
+has 'formula' => (
     is => 'rw',
 );
 
