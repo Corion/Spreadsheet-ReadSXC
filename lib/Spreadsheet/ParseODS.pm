@@ -34,8 +34,6 @@ and Spreadsheet::ParseXLS
 
 has 'line_separator'       => ( is => 'ro', default => "\n", );
 has 'IncludeCoveredCells'  => ( is => 'ro', default => 0,  );
-has 'DropHiddenRows'       => ( is => 'ro', default => 0,  );
-has 'DropHiddenColumns'    => ( is => 'ro', default => 0,  );
 has 'NoTruncate'           => ( is => 'ro', default => 0,  );
 
 has 'twig' => (
@@ -355,15 +353,6 @@ sub parse {
                     unless defined $header_row_start;
                 $header_row_end = $#$tableref;
             };
-        }
-
-
-        # decrease $max_datacol if hidden columns within range
-        # This logic is broken now that @hidden_cols contains bools, not col indices
-        if ( ( ! $self->NoTruncate ) and ( $self->DropHiddenColumns ) ) {
-            for ( 1..scalar grep { $_ <= $max_datacol } @hidden_cols ) {
-                $max_datacol--;
-            }
         }
 
         # truncate/expand table to $max_datarow and $max_datacol
