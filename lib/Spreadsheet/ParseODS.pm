@@ -33,6 +33,7 @@ and Spreadsheet::ParseXLS
 =cut
 
 has 'line_separator'       => ( is => 'ro', default => "\n", );
+has 'readonly'             => ( is => 'rw' );
 has 'IncludeCoveredCells'  => ( is => 'ro', default => 0,  );
 has 'NoTruncate'           => ( is => 'ro', default => 0,  );
 
@@ -116,6 +117,12 @@ sub parse {
         croak "Odd number of values passed to \%options hash";
     };
     my $p = $self->twig;
+
+
+    my $readonly = $self->readonly;
+    if( exists $options{ readonly }) {
+        $readonly = $options{ readonly };
+    };
 
     # Convert to ref, later
     my %workbook = ();
@@ -343,7 +350,11 @@ sub parse {
                 # clone the row unless there are no more repeated rows
                 #push @$tableref, $r < $row_repeat ? dclone( $rowref ) : $rowref;
                 # This is nasty but about 5 times faster than calling dclone()
-                push @$tableref, $r < $row_repeat ? [map { bless { %$_ } => 'Spreadsheet::ParseODS::Cell'; } @$rowref ]: $rowref;
+                if( $readonly ) {
+                    push @$tableref, $rowref;
+                } else {
+                    push @$tableref, $r < $row_repeat ? [map { bless { %$_ } => 'Spreadsheet::ParseODS::Cell'; } @$rowref ]: $rowref;
+                };
                 push @hidden_rows, $row_hidden;
                 $max_datarow++;
             };
