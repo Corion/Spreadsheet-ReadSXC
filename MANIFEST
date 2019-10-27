@@ -1,5 +1,8 @@
 Changes
 lib/Spreadsheet/ParseODS.pm
+lib/Spreadsheet/ParseODS/Cell.pm
+lib/Spreadsheet/ParseODS/Workbook.pm
+lib/Spreadsheet/ParseODS/Worksheet.pm
 lib/Spreadsheet/ReadSXC.pm
 LICENSE
 Makefile.PL
