@@ -10,7 +10,6 @@ our @EXPORT_OK = qw(read_sxc read_sxc_fh read_xml_file read_xml_string);
 our $VERSION = '0.24';
 
 use Archive::Zip ':ERROR_CODES';
-use XML::Parser;
 use Carp qw(croak);
 use Spreadsheet::ParseODS;
 use PerlX::Maybe;
