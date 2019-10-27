@@ -131,7 +131,7 @@ __END__
 
 Spreadsheet::ReadSXC - Extract OpenOffice 1.x spreadsheet data
 
-=head1 ADVICE
+=head1 NOTICE
 
 This is a legacy API wrapper. Most likely you want to look at
 L<Spreadsheet::ParseODS>, which implements an API more compatible with
