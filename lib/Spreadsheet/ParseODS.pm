@@ -162,7 +162,16 @@ L<Spreadsheet::ParseODS::Workbook> object.
 
 =head3 Options
 
-This method takes the same options as the constructor.
+=over 4
+
+=item *
+
+B<inputtype> - the type of file if passing a filehandle. Can be C<ods>, C<sxc>
+, C<fods> or C<xml>.
+
+=back
+
+This method also takes the same options as the constructor.
 
 =cut
 
