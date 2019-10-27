@@ -188,7 +188,6 @@ sub parse {
     };
     my $p = $self->twig;
 
-
     my $readonly = $self->readonly;
     if( exists $options{ readonly }) {
         $readonly = $options{ readonly };
@@ -267,28 +266,6 @@ sub parse {
         if( my $print_area_attr = $table->att( 'table:print-ranges' )) {
             $print_areas = $self->_parse_printareas($print_area_attr);
         };
-
-        # Look at table:column and decide other stuff
-#    $handlers{ "table:table-column" } = sub {
-#        my( $element ) = @_;
-## increase column count
-#        $col_count++;
-## if columns is hidden, add column number to @hidden_cols array for later use
-#        my $hidden = defined $element->att('table:visibility');
-#        if (  $hidden ) {
-#            push @hidden_cols, $col_count;
-#        };
-#
-## if number-columns-repeated is set and column is hidden, add affected columns to @hidden_cols
-#        if ( my $repeat = $element->att('table:number-columns-repeated') ) {
-#            $col_count++;
-#            if ( $hidden ) {
-#                for (2..$repeat ) {
-#                    push @hidden_cols, $hidden_cols[$#hidden_cols] + 1;
-#                }
-#            }
-#        }
-#    };
 
         # Collect information on header columns
         my @column_default_styles;
