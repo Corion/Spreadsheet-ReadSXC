@@ -17,26 +17,6 @@ use PerlX::Maybe;
 
 our @CARP_NOT = qw(Spreadsheet::ParseODS);
 
-my %workbook = ();
-my @worksheets = ();
-my @sheet_order = ();
-my $table = "";
-my $row = -1;
-my $col = -1;
-my $text_p = -1;
-my @cell = ();
-my $repeat_cells = 1;
-my $repeat_rows = 1;
-my $row_hidden = 0;
-my $date_value = '';
-my $time_value = '';
-my $currency_value = '';
-my $max_datarow = -1;
-my $max_datacol = -1;
-my $col_count = -1;
-my @hidden_cols = ();
-#my %options = ();
-
 sub zip_error_handler {}
 
 sub read_sxc ($;$) {
