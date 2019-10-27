@@ -21,21 +21,62 @@ no warnings 'experimental::signatures';
 
 Spreadsheet::ParseODS - read SXC and ODS files
 
+=head1 SYNOPSIS
+
+  my $parser = Spreadsheet::ParseODS->new(
+      line_separator => "\n", # for multiline values
+  );
+  my $workbook = $parser->parse("$d/$file");
+  my $sheet = $workbook->worksheet('Sheet1');
+
 =head1 WARNING
 
 This module is not yet API-compatible with Spreadsheet::ParseXLSX
-and Spreadsheet::ParseXLS
+and Spreadsheet::ParseXLS. Method-level compatibility is planned, but there
+always be differences in the values returned, for example for the cell
+types.
 
 =head1 METHODS
 
 =head2 C<< ->new >>
 
+=head3 Options
+
+=over 4
+
+=item *
+
+B<line_separator> - the value to separate multi-line cell values with
+
 =cut
 
 has 'line_separator'       => ( is => 'ro', default => "\n", );
+
+=item *
+
+B<readonly> - create the sheet as readonly, sharing Cells between repeated
+rows. This uses less memory at the cost of not being able to modify the data
+structure.
+
+=cut
+
 has 'readonly'             => ( is => 'rw' );
-has 'IncludeCoveredCells'  => ( is => 'ro', default => 0,  );
+
+=item *
+
+B<NoTruncate> - legacy option not to truncate the sheets by stripping
+empty columns from the right edge of a sheet. This option will likely be
+renamed or moved.
+
+=cut
+
 has 'NoTruncate'           => ( is => 'ro', default => 0,  );
+
+=item *
+
+B<twig> - a premade L<XML::Twig::XPath> instance
+
+=cut
 
 has 'twig' => (
     is => 'lazy',
@@ -46,6 +87,10 @@ has 'twig' => (
         )
     },
 );
+
+=back
+
+=cut
 
 # -----------------------------------------------------------------------------
 # col2int (for Spreadsheet::ParseExcel::Utility)
@@ -110,25 +155,14 @@ sub _parse_printareas( $self, $printarea ) {
 
 =head2 C<< ->parse( %options ) >>
 
-    my $workbook = Spreadsheet::ParseODS->parse( 'example.ods' );
+    my $workbook = Spreadsheet::ParseODS->new()->parse( 'example.ods' );
 
 Reads the spreadsheet into memory and returns the data as a
 L<Spreadsheet::ParseODS::Workbook> object.
 
 =head3 Options
 
-=over 4
-
-=item *
-
-B<readonly>
-
-Returns the spreadsheet as a readonly object. This allows some memory
-optimization by sharing values between repeated rows.
-
-(not yet implemented)
-
-=back
+This method takes the same options as the constructor.
 
 =cut
 
