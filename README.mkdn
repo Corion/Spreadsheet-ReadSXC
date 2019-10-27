@@ -6,6 +6,12 @@
 
 Spreadsheet::ReadSXC - Extract OpenOffice 1.x spreadsheet data
 
+# ADVICE
+
+This is a legacy API wrapper. Most likely you want to look at
+[Spreadsheet::ParseODS](https://metacpan.org/pod/Spreadsheet::ParseODS), which implements an API more compatible with
+[Spreadsheet::ParseXLSX](https://metacpan.org/pod/Spreadsheet::ParseXLSX). That module is also the backend for this API.
+
 # SYNOPSIS
 
     use Spreadsheet::ReadSXC qw(read_sxc);

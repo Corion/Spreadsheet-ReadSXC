@@ -152,8 +152,13 @@ __END__
 
 Spreadsheet::ReadSXC - Extract OpenOffice 1.x spreadsheet data
 
-=head1 SYNOPSIS
+=head1 ADVICE
 
+This is a legacy API wrapper. Most likely you want to look at
+L<Spreadsheet::ParseODS>, which implements an API more compatible with
+L<Spreadsheet::ParseXLSX>. That module is also the backend for this API.
+
+=head1 SYNOPSIS
 
   use Spreadsheet::ReadSXC qw(read_sxc);
   my $workbook_ref = read_sxc("/path/to/file.sxc");
@@ -467,9 +472,7 @@ Parses an XML string and eturns the worksheets as a data structure.
     my $fh = fetch_url('http://example.com/example.ods');
     my $sheet = read_sxc_fh( $fh );
 
-
 =head1 SEE ALSO
-
 
 L<https://www.openoffice.org/xml/general.html> has extensive documentation
 of the OpenOffice 1.x XML file format (soon to be replaced by the
