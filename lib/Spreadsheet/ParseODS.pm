@@ -466,7 +466,7 @@ sub parse {
     my $options = {};
 
     # if we don't have an FODS monolithic file, read the styles separately
-    if( $options{ inputtype } ne 'xml' ) {
+    if( !$options{ inputtype } or $options{ inputtype } ne 'xml' ) {
         my ($method, $xml) = $self->_open_xml_thing(
                                 $source,
                                 $options,
@@ -515,7 +515,7 @@ sub _open_xml_thing( $self, $source, $wb_info, %options ) {
             $xml = $source;
 
         } else {
-            $xml = $self->_open_sxc( $source )
+            $xml = $self->_open_sxc( $source, \%options )
         };
 
     } else {
@@ -529,7 +529,7 @@ sub _open_xml_thing( $self, $source, $wb_info, %options ) {
                 $xml = $$source;
             } else {
                 open my $fh, '<', $source;
-                $xml = $self->_open_sxc_fh( $fh );
+                $xml = $self->_open_sxc_fh( $fh, $options{member_file} );
             };
 
         } elsif ( $ref eq 'ARRAY' ) {
@@ -539,13 +539,15 @@ sub _open_xml_thing( $self, $source, $wb_info, %options ) {
             } else {
                 my $content = join( '', @$source );
                 open my $fh, '<', $content;
-                $xml = $self->_open_sxc_fh( $fh );
+                $xml = $self->_open_sxc_fh( $fh, $options{member_file} );
             };
 
         } else {
              # Assume filehandle
              # Kick off XML::Twig from Filehandle
-             $xml = $self->_open_sxc_fh( $source );
+             warn "Duplicated source";
+             open my $fh, '<&', $source;
+             $xml = $self->_open_sxc_fh( $fh, $options{ member_file });
          }
     }
 
@@ -559,7 +561,7 @@ sub _open_sxc {
     };
     open my $fh, '<', $sxc_file
         or croak "Couldn't open '$sxc_file': $!";
-    return $self->_open_sxc_fh( $fh );
+    return $self->_open_sxc_fh( $fh, $options_ref->{member_file} );
 }
 
 sub _open_sxc_fh($self, $fh, $member) {
@@ -567,11 +569,14 @@ sub _open_sxc_fh($self, $fh, $member) {
     my $status = $zip->readFromFileHandle($fh);
     $status == AZ_OK
         or croak "Read error from zip";
-    my $content = $zip->memberNamed($member);
+    my $content = $zip->memberNamed($member)
+        or croak "Want to read $member' but it doesn't exist!";
+
     $content->rewindData();
     my $stream = $content->fh;
+    1 if eof($stream); # reset eof state of $stream?! Is that a bug? Where?
     binmode $stream => ':gzip(none)';
-    $stream
+    return $stream
 }
 
 sub _build_styles( $self, $styles ) {
