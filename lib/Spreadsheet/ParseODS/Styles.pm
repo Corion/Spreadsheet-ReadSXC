@@ -58,8 +58,10 @@ sub part_to_format( $self, $part ) {
             $res = 'd';
         };
     } elsif( $t eq 'number:day-of-week' ) {
-        my $style = $part->att('number:style');
         $res = 'ddd';
+        #warn $part->toString;
+    } elsif( $t eq 'number:week-of-year' ) {
+        $res = 'ww';
         #warn $part->toString;
     } elsif( $t eq 'number:month' ) {
         my $style = $part->att('number:style');
@@ -105,7 +107,7 @@ sub part_to_format( $self, $part ) {
         $res = $part->text;
     } elsif( $t eq 'loext:text' ) {
         $res = $part->text;
-    } elsif( $t eq 'style:text-properties' ) {
+    } elsif( $t eq 'style:text-properties' or $t eq 'style:properties' ) {
         # ignored
     } elsif( $t eq 'loext:fill-character' ) {
         # ignored

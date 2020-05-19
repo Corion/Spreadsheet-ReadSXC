@@ -10,7 +10,7 @@ use Carp qw(croak);
 use List::Util 'max';
 #use Storable 'dclone';
 
-our $VERSION = '0.24';
+our $VERSION = '0.25'; # XXX for testing Spreadsheet::Read
 our @CARP_NOT = (qw(XML::Twig));
 
 use Filter::signatures;
@@ -192,6 +192,11 @@ sub parse {
     } else {
         croak "Odd number of values passed to \%options hash";
     };
+
+    if( $options{ attr }) {
+        die "We want to store cell attributes";
+    };
+
     my $p = $self->twig;
 
     my $readonly = $self->readonly;
