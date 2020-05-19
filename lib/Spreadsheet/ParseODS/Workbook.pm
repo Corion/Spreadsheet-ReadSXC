@@ -35,6 +35,11 @@ has '_worksheets' => (
     default => sub { {} },
 );
 
+has '_styles' => (
+    is => 'lazy',
+    default => sub { {} },
+);
+
 =head2 C<< ->table_styles >>
 
 The styles that identify whether a table is hidden, and other styles

@@ -16,10 +16,12 @@ our @CARP_NOT = (qw(XML::Twig));
 use Filter::signatures;
 use feature 'signatures';
 no warnings 'experimental::signatures';
+use PerlX::Maybe;
 
 use Spreadsheet::ParseODS::Workbook;
 use Spreadsheet::ParseODS::Worksheet;
 use Spreadsheet::ParseODS::Cell;
+use Spreadsheet::ParseODS::Styles;
 
 =head1 NAME
 
@@ -202,6 +204,7 @@ sub parse {
     my @worksheets = ();
     my @sheet_order = ();
     my %table_styles;
+    my $styles = Spreadsheet::ParseODS::Styles->new(); # the global style
 
     my %handlers;
 
@@ -461,10 +464,22 @@ sub parse {
     $p->setTwigHandlers( \%handlers );
 
     my $options = {};
+
+    # if we don't have an FODS monolithic file, read the styles separately
+    if( $options{ inputtype } ne 'xml' ) {
+        my ($method, $xml) = $self->_open_xml_thing(
+                                $source,
+                                $options,
+                                inputtype => $options{ inputtype },
+                                member_file => 'styles.xml',
+                            );
+        $p->$method( $xml );
+    };
     my ($method, $xml) = $self->_open_xml_thing(
                             $source,
                             $options,
-                            inputtype => $options{ inputtype }
+                            inputtype => $options{ inputtype },
+                            member_file => 'content.xml',
                          );
     $p->$method( $xml );
 
@@ -472,12 +487,14 @@ sub parse {
     # <config:config-item config:name="ActiveTable" config:type="string">Sheet3</config:config-item>
 
     # Also maybe read /meta.xml for the remaining information
-    # Also maybe read /styles.xml for the cell formats
+
+    # If this is a zip-format-file, read the other part(s) as well:
 
     return Spreadsheet::ParseODS::Workbook->new(
-        %$options,
-        _worksheets => \%workbook,
-        _sheets => \@worksheets
+            %$options,
+          _worksheets => \%workbook,
+              _sheets => \@worksheets,
+        maybe _styles => $styles,
     );
 };
 
@@ -545,17 +562,20 @@ sub _open_sxc {
     return $self->_open_sxc_fh( $fh );
 }
 
-sub _open_sxc_fh {
-    my ($self, $fh) = @_;
+sub _open_sxc_fh($self, $fh, $member) {
     my $zip = Archive::Zip->new();
     my $status = $zip->readFromFileHandle($fh);
     $status == AZ_OK
         or croak "Read error from zip";
-    my $content = $zip->memberNamed('content.xml');
+    my $content = $zip->memberNamed($member);
     $content->rewindData();
     my $stream = $content->fh;
     binmode $stream => ':gzip(none)';
     $stream
+}
+
+sub _build_styles( $self, $styles ) {
+    return Spreadsheet::ParseODS::Styles->new()
 }
 
 1;
