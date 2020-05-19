@@ -85,7 +85,7 @@ sub part_to_format( $self, $part ) {
         #warn $part->toString;
     } elsif( $t eq 'number:text' ) {
         $res = $part->text;
-    } elsif( $t eq 'number:text-content' ) {
+    } elsif( $t eq 'number:text-content' or $t eq 'number:currency-symbol' ) {
         $res = $part->text;
     } elsif( $t eq 'loext:text' ) {
         $res = $part->text;
