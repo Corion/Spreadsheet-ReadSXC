@@ -1,4 +1,5 @@
 package Spreadsheet::ParseODS::Styles;
+use 5.010; # for //
 use Moo 2;
 use Carp qw(croak);
 use Filter::signatures;
@@ -46,6 +47,9 @@ sub part_to_format( $self, $part ) {
             $res = 'H';
         };
         #warn $part->toString;
+    } elsif( $t eq 'number:am-pm' ) {
+        $res = 'am';
+        #warn $part->toString;
     } elsif( $t eq 'number:day' ) {
         my $style = $part->att('number:style');
         if( $style and $style eq 'long') {
@@ -83,22 +87,41 @@ sub part_to_format( $self, $part ) {
             $res .= '.' . ('0' x $dec);
         };
         #warn $part->toString;
+    } elsif( $t eq 'number:scientific-number' ) {
+        $res = '#' x $part->att('number:min-integer-digits');
+
+        if( defined( my $dec = $part->att('number:decimal-places'))) {
+            $res .= '.' . ('0' x $dec);
+        };
+        $res .= 'E+';
+        if( defined( my $dec = $part->att('number:exponent-digits'))) {
+            $res .= '.' . ('#' x $dec);
+        };
+
+        #warn $part->toString;
     } elsif( $t eq 'number:text' ) {
         $res = $part->text;
     } elsif( $t eq 'number:text-content' or $t eq 'number:currency-symbol' ) {
         $res = $part->text;
     } elsif( $t eq 'loext:text' ) {
         $res = $part->text;
+    } elsif( $t eq 'style:text-properties' ) {
+        # ignored
     } elsif( $t eq 'loext:fill-character' ) {
+        # ignored
+    } elsif( $t eq 'style:map' ) {
+        # ignored
+    } elsif( $t eq '#PCDATA' ) {
         # ignored
     } else {
         warn "Unknown tag name '$t'";
+        warn $part->toString;
     };
     return $res
 }
 
 sub to_format( $self, $style ) {
-    return join "", map { $self->part_to_format( $_ ) } $style->children
+    return join "", map { my $res = $self->part_to_format( $_ ) // '' } $style->children
 }
 
 sub read_from_twig( $self, $elt ) {
@@ -121,8 +144,8 @@ sub read_from_twig( $self, $elt ) {
         # ignore language and country
         # This is not ideal, but oh well
         my $format = $self->to_format( $style );
-warn "Defined '$name' as '$format'";
-warn $style->toString unless $format;
+#warn "Defined '$name' as '$format'";
+#warn $style->toString unless $format;
         $styles->{ $name } = {
             format => $format,
         };

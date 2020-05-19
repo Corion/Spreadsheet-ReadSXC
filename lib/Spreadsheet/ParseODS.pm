@@ -243,7 +243,30 @@ sub parse {
 
     $handlers{ "//office:automatic-styles/style:style" } = sub {
         my( $twig, $style ) = @_;
-        $table_styles{ $style->att('style:name') } = $style;
+        #die sprintf "Style '%s' already exists!", $style->att('style:name')
+        #    if $table_styles{ $style->att('style:name') };
+        my $style_name = $style->att('style:name');
+        #warn sprintf "Defining data-style for '%s' as '%s'", $style_name, $style->att('style:data-style-name');
+        #if( ! $style->att('style:data-style-name') ) {
+        #    warn "Inline style?!";
+        #    warn $style->toString;
+        #};
+            $table_styles{ $style_name } = $style;
+        #warn join ", ", sort keys %table_styles;
+    };
+
+    $handlers{ "//office:automatic-styles" } = sub {
+        my( $twig, $style ) = @_;
+        $styles->read_from_twig( $style );
+    };
+
+    if( 0 ) {
+        # In case we have an FODS XML file where all sub-parts are contained within
+        # the same XML
+        $handlers{ "//office:styles" } = sub {
+            my( $twig, $style ) = @_;
+            $styles->read_from_twig( $style );
+        };
     };
 
     $handlers{ "table:table" } = sub {
@@ -260,6 +283,7 @@ sub parse {
         my $tab_color;
         if( my $style_name = $table->att('table:style-name')) {
             my $style = $table_styles{$style_name};
+            die "No style for '$style_name'" unless $style;
             if( my $prop = $style->first_child('style:table-properties')) {
                 my $display = $prop->att('table:display')
                         || '';
@@ -375,6 +399,7 @@ sub parse {
                             formula     => undef,
                             hyperlink   => undef,
                             style       => undef,
+                            format      => undef,
                         });
 
                     } else {
@@ -383,13 +408,28 @@ sub parse {
                             # $row_has_content = 1;
                         };
 
+                        my $f;
+                        if( "Default" ne $style_name ) {
+                            my $s = $table_styles{ $style_name }->att('style:data-style-name');
+                            if( $s ) {
+                                $f = $styles->styles->{ $s }->{format};
+                            } else {
+                                    #warn "<<$style_name>>";
+                                    #warn "<<$s>>";
+                                    #use Data::Dumper;
+                                    #warn Dumper $styles->styles;
+                                    #die;
+                            };
+                        };
+
                         my $cell = Spreadsheet::ParseODS::Cell->new({
-                            value       => $text,
-                            unformatted => $unformatted,
-                            formula     => $formula,
-                            type        => $type,
-                            hyperlink   => $hyperlink,
-                            style       => $style_name,
+                                  value       => $text,
+                                  unformatted => $unformatted,
+                                  formula     => $formula,
+                                  type        => $type,
+                                  hyperlink   => $hyperlink,
+                                  style       => $style_name,
+                            maybe 'format'    => $f,
                         });
 
                         push @$rowref, $cell;
