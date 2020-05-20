@@ -25,6 +25,11 @@ has 'filename' => (
     is => 'rw',
 );
 
+has '_settings' => (
+    is => 'rw',
+    handles => [ 'active_sheet_name' ],
+);
+
 has '_sheets' => (
     is => 'lazy',
     default => sub { {} },
@@ -64,6 +69,11 @@ print area, C<undef> is returned for its print area.
 
 sub get_print_areas( $self ) {
     [ map { $_->get_print_areas } $self->worksheets ]
+}
+
+# <config:config-item config:name="ActiveTable" config:type="string">Sheet3</config:config-item>
+sub get_active_sheet($self) {
+    $self->worksheet( $self->active_sheet_name );
 }
 
 sub get_filename( $self ) {

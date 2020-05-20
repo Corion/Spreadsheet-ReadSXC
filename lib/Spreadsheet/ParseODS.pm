@@ -22,6 +22,7 @@ use Spreadsheet::ParseODS::Workbook;
 use Spreadsheet::ParseODS::Worksheet;
 use Spreadsheet::ParseODS::Cell;
 use Spreadsheet::ParseODS::Styles;
+use Spreadsheet::ParseODS::Settings;
 
 =head1 NAME
 
@@ -209,42 +210,19 @@ sub parse {
     my @worksheets = ();
     my @sheet_order = ();
     my %table_styles;
-    my $styles = Spreadsheet::ParseODS::Styles->new(); # the global style
+    my $styles = Spreadsheet::ParseODS::Styles->new(); # the workbook style
+    my %settings;
 
     my %handlers;
+    my %style_handlers;
+    my %setting_handlers;
 
-#    $handlers{ 'text:p' } = sub {
-#        my( $element ) = @_;
-#
-#        if( $element->parent->nodeType ne 'office:annotation' ) {
-#            # Add to current cell
-#            push @cell, $element->value;
-#        };
-#    };
-#
-#    $handlers{ 'table:table-cell' }
-#    = $handlers{ 'table:covered-table-cell' } = sub {
-#        my( $element ) = @_;
-#
-## increase cell count
-#        $col++;
-## if number-columns-repeated is set, set $repeat_cells value accordingly for later use
-#        my $repeat = $element->att('table:number-columns-repeated');
-#        if( defined $repeat ) {
-#            $repeat_cells = $repeat;
-#        }
-## save the currency value (if available)
-#        if (exists $attributes{'table:value'} or exists $attributes{'office:value'} ) {
-#            $currency_value = $attributes{'table:value'} || $attributes{'office:value'};
-#        }
-## if cell contains date or time values, set boolean variable for later use
-#        elsif (exists $attributes{'table:date-value'} or exists $attributes{'office:date-value'}) {
-#            $date_value = $attributes{'table:date-value'} || $attributes{'office:date-value'};
-#        }
-#        elsif (exists $attributes{'table:time-value'} or exists $attributes{'office:time-value'}) {
-#            $time_value = $attributes{'table:time-value'} || $attributes{'office:time-value'};
-#        }
-#    };
+    $setting_handlers{ '//office:settings/config:config-item-set[@config:name="ooo:view-settings"]//config:config-item' } = sub {
+        my( $twig, $setting ) = @_;
+        if( $setting->att('config:name') eq 'ActiveTable' ) {
+            $settings{ active_sheet_name } = $setting->text;
+        };
+    };
 
     $handlers{ "//office:automatic-styles/style:style" } = sub {
         my( $twig, $style ) = @_;
@@ -260,7 +238,8 @@ sub parse {
         #warn join ", ", sort keys %table_styles;
     };
 
-    $handlers{ "//office:automatic-styles" } = sub {
+    $handlers{ "//office:automatic-styles" } =
+    $style_handlers{ "//office:automatic-styles" } = sub {
         my( $twig, $style ) = @_;
         $styles->read_from_twig( $style );
     };
@@ -506,8 +485,6 @@ sub parse {
         $workbook{ $tablename } = $ws;
     };
 
-    $p->setTwigHandlers( \%handlers );
-
     my $options = {};
 
     # if we don't have an FODS monolithic file, read the styles separately
@@ -518,8 +495,22 @@ sub parse {
                                 inputtype => $options{ inputtype },
                                 member_file => 'styles.xml',
                             );
+        $p->setTwigHandlers( \%style_handlers );
         $p->$method( $xml );
+
+        # read /settings.xml in addition, to fill stuff like ActiveSheet
+        ($method, $xml) = $self->_open_xml_thing(
+                                $source,
+                                $options,
+                                inputtype => $options{ inputtype },
+                                member_file => 'settings.xml',
+                            );
+        $p->setTwigHandlers( \%setting_handlers );
+        $p->$method( $xml );
+        # Also maybe read /meta.xml for the remaining information
+
     };
+    $p->setTwigHandlers( \%handlers );
     my ($method, $xml) = $self->_open_xml_thing(
                             $source,
                             $options,
@@ -528,17 +519,11 @@ sub parse {
                          );
     $p->$method( $xml );
 
-    # Consider reading /settings.xml in addition, to fill stuff like ActiveSheet
-    # <config:config-item config:name="ActiveTable" config:type="string">Sheet3</config:config-item>
-
-    # Also maybe read /meta.xml for the remaining information
-
-    # If this is a zip-format-file, read the other part(s) as well:
-
     return Spreadsheet::ParseODS::Workbook->new(
             %$options,
           _worksheets => \%workbook,
               _sheets => \@worksheets,
+            _settings => Spreadsheet::ParseODS::Settings->new( %settings ),
         maybe _styles => $styles,
     );
 };
