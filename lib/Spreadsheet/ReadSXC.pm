@@ -118,7 +118,7 @@ sub _parse_xml {
     };
 
     if ( $options_ref->{OrderBySheet} ) {
-        return [ map { $res->{ $_ } } $workbook->sheets ]
+        return [ map { $res->{ $_ } } $workbook->worksheets ]
     } else {
         return $res
     }
