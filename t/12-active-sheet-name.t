@@ -9,6 +9,7 @@ my $d = dirname($0);
 my %tests = (
     "$d/print-area.ods" => 'multiple printarea.C3',
     "$d/Dates.ods" => 'DateTest',
+    "$d/hidden-cols.ods" => 'vhhhvh',
 );
 
 plan tests => 2 * scalar keys %tests;
