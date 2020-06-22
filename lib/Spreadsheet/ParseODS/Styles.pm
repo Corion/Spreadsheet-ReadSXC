@@ -105,6 +105,15 @@ sub part_to_format( $self, $part ) {
         $res = $part->text;
     } elsif( $t eq 'number:text-content' or $t eq 'number:currency-symbol' ) {
         $res = $part->text;
+    } elsif( $t eq 'number:fraction' ) {
+        $res = '#' x $part->att('number:min-integer-digits');
+
+        if( defined( my $num = $part->att('number:min-numerator-digits'))) {
+            $res .= ' ' . ('#' x $num);
+
+            my $den = $part->att('number:min-denominator-digits');
+            $res .= '/' . ('#' x $den);
+        };
     } elsif( $t eq 'loext:text' ) {
         $res = $part->text;
     } elsif( $t eq 'style:text-properties' or $t eq 'style:properties' ) {
