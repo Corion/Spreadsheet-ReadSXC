@@ -330,8 +330,6 @@ sub parse {
 
             my $rowref = [];
 
-            #my $row_has_content = 1;
-
             # Do we really only want to add a cell if it contains text?!
             for my $cell ($row->findnodes("./table:table-cell | ./table:covered-table-cell")) {
                 my $colnum = @$rowref;
