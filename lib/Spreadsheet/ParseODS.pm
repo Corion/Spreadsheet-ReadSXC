@@ -530,10 +530,8 @@ sub _open_xml_thing( $self, $source, $wb_info, %options ) {
     my $ref = ref($source);
     my $xml;
     my $method = 'parse';
-
     if( ! $ref ) {
         # Specified by filename .
-
         croak "Undef ODS source given"
             unless defined $source;
 
@@ -573,7 +571,7 @@ sub _open_xml_thing( $self, $source, $wb_info, %options ) {
         } else {
              # Assume filehandle
              # Kick off XML::Twig from Filehandle
-             warn "Duplicated source";
+             #warn "Duplicated source";
              open my $fh, '<&', $source;
              $xml = $self->_open_sxc_fh( $fh, $options{ member_file });
          }
