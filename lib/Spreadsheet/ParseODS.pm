@@ -323,6 +323,7 @@ sub parse {
         };
 
         # Cut away the empty rows
+        $last_payload_row++ if $last_payload_row == -1;
         splice @rows, $last_payload_row+1;
 
         for my $row (@rows) {
