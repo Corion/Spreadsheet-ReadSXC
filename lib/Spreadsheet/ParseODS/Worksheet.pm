@@ -66,6 +66,11 @@ has 'tab_color' => (
     is => 'rw',
 );
 
+has 'merged_areas' => (
+    is => 'lazy',
+    default => sub { [] },
+);
+
 sub get_cell( $self, $row, $col ) {
     return undef if $row > $self->row_max;
     return undef if $col > $self->col_max;
@@ -117,6 +122,10 @@ sub get_print_titles( $self ) {
     };
     return unless scalar keys %$res;
     return $res
+}
+
+sub get_merged_areas( $self ) {
+    return $self->merged_areas
 }
 
 sub is_row_hidden( $self, $rownum=undef ) {
