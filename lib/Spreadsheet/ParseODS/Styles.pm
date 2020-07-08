@@ -120,6 +120,8 @@ sub part_to_format( $self, $part ) {
         # ignored
     } elsif( $t eq 'loext:fill-character' ) {
         # ignored
+    } elsif( $t eq 'number:fill-character' ) {
+        # ignored
     } elsif( $t eq 'style:map' ) {
         # ignored
     } elsif( $t eq '#PCDATA' ) {
