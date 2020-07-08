@@ -1,0 +1,21 @@
+=head1 TO DO
+
+Steps to implement with/for L<Spreadsheet::Read>
+
+=over 4
+
+=item 1
+
+Do not strip whitespace of cell contents,
+
+=item 2
+
+Support for cell attributes: background color, text color, hidden, merged,
+
+=item 3
+
+the rest
+
+=back
+
+=cut
