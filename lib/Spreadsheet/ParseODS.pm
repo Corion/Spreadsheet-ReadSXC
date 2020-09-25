@@ -364,7 +364,17 @@ sub parse {
 
                 my @text = $cell->findnodes('text:p');
                 if( @text ) {
-                    $text = join $self->line_separator, map { $_->text } @text;
+                    $text = join $self->line_separator, map {
+                        join '', map {
+                            my $tag = $_->tag;
+                              $tag eq '#PCDATA' ? $_->text
+                            : $tag eq 'text:s'  ? ' '
+                            : $tag eq 'text:tab'  ? "\t"
+                            : $tag eq 'text:span' ? $_->text
+                            : $tag eq 'text:a'    ? $_->text
+                            : warn "Unknown text tag " . $_->tag && ''
+                        } $_->children;
+                    } @text;
                     $max_datacol = max( $max_datacol, $#$rowref+$repeat );
                 } else {
                     $text = $unformatted;
