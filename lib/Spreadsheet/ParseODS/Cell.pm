@@ -40,6 +40,14 @@ has 'style' => (
     is => 'rw',
 );
 
+has 'is_merged' => (
+    is => 'rw',
+);
+
+has 'is_hidden' => (
+    is => 'rw',
+);
+
 sub get_hyperlink( $self ) {
     $self->hyperlink
 }
@@ -47,5 +55,6 @@ sub get_hyperlink( $self ) {
 sub get_format( $self ) {
     $self->format
 }
+
 
 1;

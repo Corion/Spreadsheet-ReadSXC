@@ -258,8 +258,9 @@ sub parse {
 
         my $max_datarow = -1;
         my $max_datacol = -1;
-        my @hidden_cols = ();
-        my @hidden_rows = ();
+        my @hidden_cols;
+        my @hidden_rows;
+        my @merged_areas;
 
         my $tablename = $table->att('table:name');
         my $tableref = $workbook{ $tablename } = [];
@@ -326,7 +327,10 @@ sub parse {
         $last_payload_row++ if $last_payload_row == -1;
         splice @rows, $last_payload_row+1;
 
+        my $rownum = -1;
         for my $row (@rows) {
+            $rownum++;
+
             my $row_hidden = $row->att( 'table:visibility' ) || '';
 
             my $rowref = [];
@@ -380,26 +384,35 @@ sub parse {
                     $text = $unformatted;
                 };
 
+                my ($merge_source, $is_merged) = (undef, 0);
+                if( $cell->att('table:number-columns-spanned') || $cell->att('table:number-rows-spanned')) {
+                    my $colspan = $cell->att('table:number-columns-spanned') || 0;
+                    my $rowspan = $cell->att('table:number-rows-spanned') || 0;
+                    push @merged_areas, [ $rownum, $colnum, $rownum + $rowspan -1, $colnum + $colspan -1 ];
+                    $is_merged = 1;
+
+                } elsif( $cell->tag eq 'table:covered-table-cell') {
+                    $is_merged = 1;
+                };
+
                 for my $i (1..$repeat) {
+
                     # Yes, this is somewhat inefficient, but it saves us
                     # from later programming errors if we create/store
                     # references. We can always later turn this inside-out.
                     if( $cell->is_empty ) {
                         push @$rowref, Spreadsheet::ParseODS::Cell->new({
-                            type        => undef,
-                            unformatted => undef,
-                            value       => undef,
-                            formula     => undef,
-                            hyperlink   => undef,
-                            style       => undef,
-                            format      => undef,
+                            type         => undef,
+                            unformatted  => undef,
+                            value        => undef,
+                            formula      => undef,
+                            hyperlink    => undef,
+                            style        => undef,
+                            format       => undef,
+                            is_merged    => $is_merged,
                         });
 
                     } else {
-
-                        if( $type ) {
-                            # $row_has_content = 1;
-                        };
 
                         my $f;
                         if( "Default" ne $style_name ) {
@@ -416,12 +429,13 @@ sub parse {
                         };
 
                         my $cell = Spreadsheet::ParseODS::Cell->new({
-                                  value       => $text,
-                                  unformatted => defined $unformatted ? $unformatted : $text,
-                                  formula     => $formula,
-                                  type        => $type,
-                                  hyperlink   => $hyperlink,
-                                  style       => $style_name,
+                                  value        => $text,
+                                  unformatted  => defined $unformatted ? $unformatted : $text,
+                                  formula      => $formula,
+                                  type         => $type,
+                                  hyperlink    => $hyperlink,
+                                  style        => $style_name,
+                                  is_merged    => $is_merged,
                             maybe 'format'    => $f,
                         });
 
@@ -488,6 +502,7 @@ sub parse {
                 hidden_rows => \@hidden_rows,
                 hidden_cols => \@hidden_cols,
                 table_styles => \%table_styles,
+                merged_areas => \@merged_areas,
         });
         # set up alternative data structure
         push @worksheets, $ws;

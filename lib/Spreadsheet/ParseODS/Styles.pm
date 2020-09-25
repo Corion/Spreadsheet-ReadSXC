@@ -157,10 +157,13 @@ sub read_from_twig( $self, $elt ) {
         # ignore language and country
         # This is not ideal, but oh well
         my $format = $self->to_format( $style );
+        my ($font) = map { $_->att('style:font-name') } $style->findnodes('style:text-properties');
+
 #warn "Defined '$name' as '$format'";
 #warn $style->toString unless $format;
         $styles->{ $name } = {
-            format => $format,
+            format    => $format,
+            font_face => $font,
         };
     };
 
