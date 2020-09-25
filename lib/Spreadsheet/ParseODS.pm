@@ -407,7 +407,7 @@ sub parse {
 
                         my $cell = Spreadsheet::ParseODS::Cell->new({
                                   value       => $text,
-                                  unformatted => $unformatted,
+                                  unformatted => defined $unformatted ? $unformatted : $text,
                                   formula     => $formula,
                                   type        => $type,
                                   hyperlink   => $hyperlink,
