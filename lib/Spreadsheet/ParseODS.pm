@@ -10,7 +10,7 @@ use Carp qw(croak);
 use List::Util 'max';
 #use Storable 'dclone';
 
-our $VERSION = '0.25'; # XXX for testing Spreadsheet::Read
+our $VERSION = '0.25';
 our @CARP_NOT = (qw(XML::Twig));
 
 use Filter::signatures;
@@ -344,6 +344,8 @@ sub parse {
                                $cell->att("table:value"),  # SXC
                                $cell->att("office:date-value"), # ODS
                                $cell->att("table:date-value"),  # SXC
+                               $cell->att("office:time-value"), # ODS
+                               $cell->att("table:time-value"),  # SXC
                                ;
                 my $formula = $cell->att("table:formula");
                 if( $formula ) {
