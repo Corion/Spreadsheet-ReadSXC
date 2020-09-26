@@ -226,16 +226,8 @@ sub parse {
 
     $handlers{ "//office:automatic-styles/style:style" } = sub {
         my( $twig, $style ) = @_;
-        #die sprintf "Style '%s' already exists!", $style->att('style:name')
-        #    if $table_styles{ $style->att('style:name') };
         my $style_name = $style->att('style:name');
-        #warn sprintf "Defining data-style for '%s' as '%s'", $style_name, $style->att('style:data-style-name');
-        #if( ! $style->att('style:data-style-name') ) {
-        #    warn "Inline style?!";
-        #    warn $style->toString;
-        #};
-            $table_styles{ $style_name } = $style;
-        #warn join ", ", sort keys %table_styles;
+        $table_styles{ $style_name } = $style;
     };
 
     $handlers{ "//office:automatic-styles" } =
@@ -410,13 +402,18 @@ sub parse {
                             style        => undef,
                             format       => undef,
                             is_merged    => $is_merged,
+                            is_hidden    => undef,
                         });
 
                     } else {
 
+                        my $is_hidden;
                         my $f;
                         if( "Default" ne $style_name ) {
                             my $s = $table_styles{ $style_name }->att('style:data-style-name');
+                            # Find if the cell is protected/hidden
+                            my ($cellprops) = $table_styles{ $style_name }->findnodes('style:table-cell-properties');
+
                             if( $s ) {
                                 $f = $styles->styles->{ $s }->{format};
                             } else {
@@ -426,6 +423,14 @@ sub parse {
                                     #warn Dumper $styles->styles;
                                     #die;
                             };
+
+                            if( $cellprops ) {
+                                my $protect = $cellprops->att('style:cell-protect');
+                                if( $protect ) {
+                                    $is_hidden = ($protect =~ /^(?:formula-hidden|hidden-and-protected)$/);
+                                };
+                            };
+
                         };
 
                         my $cell = Spreadsheet::ParseODS::Cell->new({
@@ -436,6 +441,7 @@ sub parse {
                                   hyperlink    => $hyperlink,
                                   style        => $style_name,
                                   is_merged    => $is_merged,
+                                  is_hidden    => $is_hidden,
                             maybe 'format'    => $f,
                         });
 
@@ -486,7 +492,6 @@ sub parse {
         if( defined $header_col_start ) {
             $header_cols = [$header_col_start, $header_col_end];
         };
-
         my $ws = Spreadsheet::ParseODS::Worksheet->new({
                 label => $tablename,
                 tab_color => $tab_color,
