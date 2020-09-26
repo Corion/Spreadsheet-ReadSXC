@@ -1,16 +1,16 @@
 Revision history for Perl extension Spreadsheet::ReadSXC.
 
-0.25  2020-06-22
+0.25  2020-09-27
     This release has major changes and will be promoted to 1.0 if there are
     no major breaks.
 
     * Added (proper) parsing of ODS files
     * Added support for formats
+    * Added support for hidden cells, merged cells
     * Split up parsing and classes into separate files
     * Spreadsheet::ReadSXC now uses Spreadsheet::ParseODS
     * Added ->is_sheet_hidden(), ->get_print_areas, ->get_hyperlink()
       ->is_col_hidden(), ->tab_color(), ->table_styles(), ->filename(),
-
 
 0.24  2019-10-08
     - Fix parsing the text of cells that only contain "0"
