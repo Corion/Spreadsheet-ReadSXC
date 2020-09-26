@@ -366,8 +366,19 @@ sub parse {
 
                 my $repeat = $cell->att('table:number-columns-repeated') || 1;
 
+                my ($merge_source, $is_merged) = (undef, 0);
+                if( $cell->att('table:number-columns-spanned') || $cell->att('table:number-rows-spanned')) {
+                    my $colspan = $cell->att('table:number-columns-spanned') || 0;
+                    my $rowspan = $cell->att('table:number-rows-spanned') || 0;
+                    push @merged_areas, [ $rownum, $colnum, $rownum + $rowspan -1, $colnum + $colspan -1 ];
+                    $is_merged = 1;
+
+                } elsif( $cell->tag eq 'table:covered-table-cell') {
+                    $is_merged = 1;
+                };
+
                 my @text = $cell->findnodes('text:p');
-                if( @text ) {
+                if( @text or $is_merged) {
                     $text = join $self->line_separator, map {
                         join '', map {
                             my $tag = $_->tag;
@@ -382,17 +393,6 @@ sub parse {
                     $max_datacol = max( $max_datacol, $#$rowref+$repeat );
                 } else {
                     $text = $unformatted;
-                };
-
-                my ($merge_source, $is_merged) = (undef, 0);
-                if( $cell->att('table:number-columns-spanned') || $cell->att('table:number-rows-spanned')) {
-                    my $colspan = $cell->att('table:number-columns-spanned') || 0;
-                    my $rowspan = $cell->att('table:number-rows-spanned') || 0;
-                    push @merged_areas, [ $rownum, $colnum, $rownum + $rowspan -1, $colnum + $colspan -1 ];
-                    $is_merged = 1;
-
-                } elsif( $cell->tag eq 'table:covered-table-cell') {
-                    $is_merged = 1;
                 };
 
                 for my $i (1..$repeat) {

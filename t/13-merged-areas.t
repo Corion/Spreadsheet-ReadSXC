@@ -6,7 +6,7 @@ use Data::Dumper;
 
 my $d = dirname($0);
 
-plan tests => 1;
+plan tests => 2;
 
 my $workbook = Spreadsheet::ParseODS->new()->parse("$d/merged.ods");
 
@@ -17,3 +17,8 @@ is_deeply $merged_areas, [
           ],
           "We read the proper merged areas"
     or diag Dumper $merged_areas;
+
+my $workbook = Spreadsheet::ParseODS->new()->parse("$d/attr.ods");
+
+my $max_col = $workbook->worksheet("Format")->col_max();
+is $max_col, 2, "An (empty) merged column at the end still counts";
