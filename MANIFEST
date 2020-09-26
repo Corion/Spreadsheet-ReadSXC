@@ -1,6 +1,8 @@
 Changes
 lib/Spreadsheet/ParseODS.pm
 lib/Spreadsheet/ParseODS/Cell.pm
+lib/Spreadsheet/ParseODS/Settings.pm
+lib/Spreadsheet/ParseODS/Styles.pm
 lib/Spreadsheet/ParseODS/Workbook.pm
 lib/Spreadsheet/ParseODS/Worksheet.pm
 lib/Spreadsheet/ReadSXC.pm
@@ -27,9 +29,16 @@ t/08-color.t
 t/09-formula.t
 t/1.t
 t/10-wide-col2int.t
+t/11-date-formats.t
+t/12-active-sheet-name.t
+t/13-merged-areas.t
 t/active-sheet-2.ods
+t/attr.ods
 t/colors.fods
 t/colors.ods
+t/Dates.fods
+t/Dates.ods
+t/empty.ods
 t/formats.ods
 t/formula.ods
 t/hidden-cols.fods
@@ -38,6 +47,7 @@ t/hidden-rows.fods
 t/hidden-rows.ods
 t/hidden-sheet.ods
 t/hyperlink.ods
+t/merged.ods
 t/NewAPI.ods
 t/print-area.ods
 t/print-titles.ods
