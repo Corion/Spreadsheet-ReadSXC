@@ -1,6 +1,7 @@
 package Spreadsheet::ParseODS;
 use strict;
 use warnings;
+use 5.010; # for "state"
 
 use Archive::Zip ':ERROR_CODES';
 use Moo 2;
@@ -182,8 +183,50 @@ This method also takes the same options as the constructor.
 
 =cut
 
-sub parse {
-    my( $self, $source, @options ) = @_;
+sub _empty_cell( $self, $readonly, $is_merged ) {
+    state $merged_cell = Spreadsheet::ParseODS::Cell->new({
+            type         => undef,
+            unformatted  => undef,
+            value        => undef,
+            formula      => undef,
+            hyperlink    => undef,
+            style        => undef,
+            format       => undef,
+            is_merged    => 1,
+            is_hidden    => undef,
+    });
+
+    state $empty_cell = Spreadsheet::ParseODS::Cell->new({
+            type         => undef,
+            unformatted  => undef,
+            value        => undef,
+            formula      => undef,
+            hyperlink    => undef,
+            style        => undef,
+            format       => undef,
+            is_merged    => undef,
+            is_hidden    => undef,
+    });
+
+    if( $readonly ) {
+        return $is_merged ? $merged_cell : $empty_cell
+
+    } else {
+        return Spreadsheet::ParseODS::Cell->new({
+            type         => undef,
+            unformatted  => undef,
+            value        => undef,
+            formula      => undef,
+            hyperlink    => undef,
+            style        => undef,
+            format       => undef,
+            is_merged    => $is_merged,
+            is_hidden    => undef,
+        });
+    }
+}
+
+sub parse( $self, $source, @options ) {
     my %options;
     my $formatter;
     if( @options % 2 == 0 ) {
@@ -389,23 +432,12 @@ sub parse {
                     $text = $unformatted;
                 };
 
-                for my $i (1..$repeat) {
-
                     # Yes, this is somewhat inefficient, but it saves us
                     # from later programming errors if we create/store
                     # references. We can always later turn this inside-out.
+                    my $cell_obj;
                     if( $cell->is_empty ) {
-                        push @$rowref, Spreadsheet::ParseODS::Cell->new({
-                            type         => undef,
-                            unformatted  => undef,
-                            value        => undef,
-                            formula      => undef,
-                            hyperlink    => undef,
-                            style        => undef,
-                            format       => undef,
-                            is_merged    => $is_merged,
-                            is_hidden    => undef,
-                        });
+                        $cell_obj = $self->_empty_cell( $readonly, $is_merged );
 
                     } else {
 
@@ -435,7 +467,7 @@ sub parse {
 
                         };
 
-                        my $cell = Spreadsheet::ParseODS::Cell->new({
+                        $cell_obj = Spreadsheet::ParseODS::Cell->new({
                                   value        => $text,
                                   unformatted  => defined $unformatted ? $unformatted : $text,
                                   formula      => $formula,
@@ -447,9 +479,15 @@ sub parse {
                             maybe 'format'    => $f,
                         });
 
-                        push @$rowref, $cell;
                     };
-                };
+                    if( $readonly ) {
+                        push @$rowref, ($cell_obj) x $repeat;
+                    } else {
+                        push @$rowref, $cell_obj;
+                        for (2..$repeat) {
+                            push @$rowref, (ref $cell_obj)->new( { %$cell_obj } );
+                        };
+                    };
             };
 
             # if number-rows-repeated is set, set $repeat_rows value accordingly for later use

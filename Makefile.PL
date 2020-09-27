@@ -37,7 +37,7 @@ my %module = (
         x_static_install => 1, # we are pure Perl and don't do anything fancy
     },
 
-    MIN_PERL_VERSION => '5.008', # we want/need a special binmode form
+    MIN_PERL_VERSION => '5.010', # we want/need a special binmode form, and "state"
 
     'LICENSE'=> 'perl',
 

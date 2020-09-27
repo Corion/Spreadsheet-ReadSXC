@@ -32,6 +32,8 @@ t/10-wide-col2int.t
 t/11-date-formats.t
 t/12-active-sheet-name.t
 t/13-merged-areas.t
+t/14-no-settings.t
+t/20200617_Testnummers_inclusief_omnummertabel_GBA-V.ods
 t/active-sheet-2.ods
 t/attr.ods
 t/colors.fods
