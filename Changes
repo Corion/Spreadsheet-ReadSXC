@@ -1,5 +1,15 @@
 Revision history for Perl extension Spreadsheet::ReadSXC.
 
+0.26  2020-09-28
+    * This needs minimum Perl version 5.010
+    * When reading a sheet in readonly mode, more aggressively reuse cell
+      objects for repeated cells
+    * Construct a cell once, and if it is repeated, clone it if not in readonly
+      mode.
+      These two changes speed up the parsing of some sheets with many repeated
+      cells vastly.
+    * Properly handle ODS files without a settings.xml (GH#2)
+
 0.25  2020-09-27
     This release has major changes and will be promoted to 1.0 if there are
     no major breaks.
