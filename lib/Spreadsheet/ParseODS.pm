@@ -11,7 +11,7 @@ use Carp qw(croak);
 use List::Util 'max';
 #use Storable 'dclone';
 
-our $VERSION = '0.25';
+our $VERSION = '0.26';
 our @CARP_NOT = (qw(XML::Twig));
 
 use Filter::signatures;
