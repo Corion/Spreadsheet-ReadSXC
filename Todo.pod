@@ -16,7 +16,7 @@ a field can hold a single space as valid content. I don't think you should strip
 
 =item 2
 
-Support for cell attributes: background color, text color, hidden, merged,
+Support for cell attributes: background color, text color,
 
 =item 3
 

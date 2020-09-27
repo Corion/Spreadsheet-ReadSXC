@@ -61,6 +61,7 @@ t/t-multiline.ods
 t/t.sxc
 t/text-outside-cell.xml
 t/wide.ods
+Todo.pod
 xt/99-changes.t
 xt/99-compile.t
 xt/99-manifest.t
