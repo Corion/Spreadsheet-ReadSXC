@@ -528,16 +528,18 @@ sub parse {
                             );
         $p->setTwigHandlers( \%style_handlers );
         $p->$method( $xml );
-
         # read /settings.xml in addition, to fill stuff like ActiveSheet
         ($method, $xml) = $self->_open_xml_thing(
                                 $source,
                                 $options,
                                 inputtype => $options{ inputtype },
                                 member_file => 'settings.xml',
+                                optional => 1,
                             );
-        $p->setTwigHandlers( \%setting_handlers );
-        $p->$method( $xml );
+        if( defined $xml) {
+            $p->setTwigHandlers( \%setting_handlers );
+            $p->$method( $xml );
+        };
         # Also maybe read /meta.xml for the remaining information
 
     };
@@ -574,7 +576,7 @@ sub _open_xml_thing( $self, $source, $wb_info, %options ) {
             $xml = $source;
 
         } else {
-            $xml = $self->_open_sxc( $source, \%options )
+            $xml = $self->_open_sxc( $source, \%options );
         };
 
     } else {
@@ -620,17 +622,24 @@ sub _open_sxc {
     };
     open my $fh, '<', $sxc_file
         or croak "Couldn't open '$sxc_file': $!";
-    return $self->_open_sxc_fh( $fh, $options_ref->{member_file} );
+    return $self->_open_sxc_fh( $fh, $options_ref->{member_file},
+        maybe optional => $options_ref->{optional}
+    );
 }
 
-sub _open_sxc_fh($self, $fh, $member) {
+sub _open_sxc_fh($self, $fh, $member, %options) {
     my $zip = Archive::Zip->new();
     my $status = $zip->readFromFileHandle($fh);
     $status == AZ_OK
         or croak "Read error from zip";
-    my $content = $zip->memberNamed($member)
-        or croak "Want to read $member' but it doesn't exist!";
-
+    my $content = $zip->memberNamed($member);
+    if( ! defined $content ) {
+        if( $options{ optional }) {
+            return;
+        } else {
+            croak "Want to read $member' but it doesn't exist!";
+        }
+    }
     $content->rewindData();
     my $stream = $content->fh;
     1 if eof($stream); # reset eof state of $stream?! Is that a bug? Where?
