@@ -33,6 +33,7 @@ t/11-date-formats.t
 t/12-active-sheet-name.t
 t/13-merged-areas.t
 t/14-no-settings.t
+t/15-gh3-warnings-with-empty-sheet-name.t
 t/20200617_Testnummers_inclusief_omnummertabel_GBA-V.ods
 t/active-sheet-2.ods
 t/attr.ods
@@ -61,6 +62,7 @@ t/StockChart.ods
 t/t-date.ods
 t/t-multiline.ods
 t/t.sxc
+t/test_spreadsheet_import.ods
 t/text-outside-cell.xml
 t/wide.ods
 Todo.pod

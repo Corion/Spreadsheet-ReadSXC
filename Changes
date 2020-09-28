@@ -1,5 +1,10 @@
 Revision history for Perl extension Spreadsheet::ReadSXC.
 
+0.27  2020-09-28
+    * Defang resource intensive test
+    * Eliminate "undef" warning when trying to get the active sheet of a
+      workbook that does not define an active sheet (GH #3)
+
 0.26  2020-09-28
     * This needs minimum Perl version 5.010
     * When reading a sheet in readonly mode, more aggressively reuse cell
