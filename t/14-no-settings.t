@@ -7,6 +7,17 @@ my $d = dirname($0);
 
 plan tests => 2;
 
+# Only run these tests locally
+my $resource_intensive_tests = ($ENV{LOGNAME} || '') eq 'corion'
+                            && ($ENV{DISPLAY} || $^O =~ /mswin/i);
+
+if(! $resource_intensive_tests) {
+    SKIP: {
+        skip "This test needs lots of memory", 2;
+    };
+    exit;
+};
+
 my $workbook;
 my $ok = eval {
     $workbook = Spreadsheet::ParseODS->new(
