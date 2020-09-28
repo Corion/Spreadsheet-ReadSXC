@@ -74,7 +74,11 @@ sub get_print_areas( $self ) {
 
 # <config:config-item config:name="ActiveTable" config:type="string">Sheet3</config:config-item>
 sub get_active_sheet($self) {
-    $self->worksheet( $self->active_sheet_name );
+    if( defined( my $name = $self->active_sheet_name )) {
+        return $self->worksheet( $name );
+    } else {
+        return undef
+    };
 }
 
 sub get_filename( $self ) {
