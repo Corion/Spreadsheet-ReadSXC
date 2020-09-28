@@ -57,7 +57,7 @@ has 'table_styles' => (
     default => sub { {} },
 );
 
-=head2 C<< get_print_areas() >>
+=head2 C<< ->get_print_areas() >>
 
     my $print_areas = $workbook->get_print_areas();
     # [[ [$start_row, $start_col, $end_row, $end_col], ... ]]
@@ -72,7 +72,18 @@ sub get_print_areas( $self ) {
     [ map { $_->get_print_areas } $self->worksheets ]
 }
 
-# <config:config-item config:name="ActiveTable" config:type="string">Sheet3</config:config-item>
+=head2 C<< ->get_active_sheet() >>
+
+    my $sheet = $workbook->get_active_sheet();
+    if( !$sheet ) {
+        # If there is no defined active worksheet, take the first:
+        ($sheet) = $workbook->worksheets();
+    };
+
+Returns the active worksheet, or if there is no such sheet, returns C<undef>.
+
+=cut
+
 sub get_active_sheet($self) {
     if( defined( my $name = $self->active_sheet_name )) {
         return $self->worksheet( $name );
@@ -85,9 +96,27 @@ sub get_filename( $self ) {
     $self->filename
 }
 
+=head2 C<< ->worksheets() >>
+
+    my @sheets = $workbook->worksheets;
+
+Returns the list of worksheets as L<Spreadsheet::ParseODS::Worksheet>
+objects.
+
+=cut
+
 sub worksheets( $self ) {
     @{ $self->_sheets }
 };
+
+=head2 C<< ->worksheet($name) >>
+
+    my $sheet1 = $workbook->worksheet('Sheet 1');
+
+Returns the worksheet with the given name, or if no such worksheet exists,
+returns C<undef>.
+
+=cut
 
 sub worksheet( $self, $name ) {
     $self->_worksheets->{ $name }
