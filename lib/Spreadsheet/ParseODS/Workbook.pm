@@ -29,9 +29,10 @@ has '_settings' => (
     handles => [ 'active_sheet_name' ],
 );
 
+# The worksheets themselves
 has '_sheets' => (
     is => 'lazy',
-    default => sub { {} },
+    default => sub { [] },
 );
 
 has '_worksheets' => (
