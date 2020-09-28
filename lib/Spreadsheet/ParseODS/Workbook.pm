@@ -35,6 +35,7 @@ has '_sheets' => (
     default => sub { [] },
 );
 
+# Mapping of names to sheet objects
 has '_worksheets' => (
     is => 'lazy',
     default => sub { {} },
