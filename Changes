@@ -1,5 +1,9 @@
 Revision history for Perl extension Spreadsheet::ReadSXC.
 
+0.28  2020-09-29
+    * Require Filter::signatures 0.16 to fix Perl versions below 5.20
+    * No upgrade necessary if things already work for you
+
 0.27  2020-09-28
     * Defang resource intensive test
     * Eliminate "undef" warning when trying to get the active sheet of a
