@@ -1,6 +1,6 @@
 #!perl
 use strict;
-use Test::More tests => 11;
+use Test::More tests => 12;
 use File::Basename 'dirname';
 use Spreadsheet::ReadSXC;
 
@@ -32,6 +32,7 @@ dies_ok sub { Spreadsheet::ReadSXC::read_sxc_fh(undef, { StrictErrors => 1 }); }
 
 is Spreadsheet::ReadSXC::read_xml_file('no-such-file.xml'), undef, "Default silent API";
 dies_ok sub { Spreadsheet::ReadSXC::read_xml_file('no-such-file.xml', { StrictErrors => 1 })},
-    qr/Couldn't open no-such-file.xml:\s+No such file or directory/, "Non-existent XML file";
+    qr/\bno-such-file\.xml\b/, "Non-existent XML file dies with an error mentioning the filename";
+ok $!{ENOENT}, "The file 'no-such-file.xml' was not found";
 
 dies_ok sub { Spreadsheet::ReadSXC::read_xml_string('<invalid_xml>',  { StrictErrors => 1 })}, qr/no element found at line 1/, "Invalid XML string";

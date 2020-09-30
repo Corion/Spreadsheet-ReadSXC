@@ -1,5 +1,9 @@
 Revision history for Perl extension Spreadsheet::ReadSXC.
 
+0.29  2020-09-30
+    * Make the test for the error message on non-existing files more lax.
+      This addresses RT #133432
+
 0.28  2020-09-29
     * Require Filter::signatures 0.16 to fix Perl versions below 5.20
     * No upgrade necessary if things already work for you
