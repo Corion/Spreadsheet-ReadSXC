@@ -54,7 +54,6 @@ my %module = (
         'PerlIO::gzip'       => 0,
         'XML::Twig'          => 0,
         'XML::XPath'         => 0,
-        'XML::Parser'        => 0,
         'XML::XPathEngine'   => 0,
         'XML::Twig::XPath'   => 0,
         'Storable'           => 0,
