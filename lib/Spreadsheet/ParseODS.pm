@@ -5,11 +5,9 @@ use 5.010; # for "state"
 
 use Archive::Zip ':ERROR_CODES';
 use Moo 2;
-use XML::Parser;
 use XML::Twig::XPath;
 use Carp qw(croak);
 use List::Util 'max';
-#use Storable 'dclone';
 
 our $VERSION = '0.29';
 our @CARP_NOT = (qw(XML::Twig));
