@@ -654,7 +654,7 @@ sub _open_xml_thing( $self, $source, $wb_info, %options ) {
 sub _open_sxc {
     my ($self, $sxc_file, $options_ref) = @_;
     if( !$options_ref->{StrictErrors}) {
-        -f $sxc_file && -s _ or return undef;
+        -f $sxc_file && -s *_ or return undef;
     };
     open my $fh, '<', $sxc_file
         or croak "Couldn't open '$sxc_file': $!";
