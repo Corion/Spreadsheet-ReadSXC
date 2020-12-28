@@ -310,6 +310,11 @@ Parses an XML string and eturns the worksheets as a data structure.
     my $fh = fetch_url('http://example.com/example.ods');
     my $sheet = read_sxc_fh( $fh );
 
+# BUG TRACKER
+
+Please report bugs in this module via the Github bug queue at
+[https://github.com/Corion/Spreadsheet-ReadSXC/issues](https://github.com/Corion/Spreadsheet-ReadSXC/issues)
+
 # SEE ALSO
 
 [https://www.openoffice.org/xml/general.html](https://www.openoffice.org/xml/general.html) has extensive documentation
@@ -327,6 +332,7 @@ Max Maischein, [mailto:corion@cpan.org](mailto:corion@cpan.org)
 # COPYRIGHT AND LICENSE
 
 Copyright 2005-2019 by Christoph Terhechte
+
 Copyright 2019- by Max Maischein
 
 This library is free software; you can redistribute it and/or modify

@@ -688,3 +688,36 @@ sub _build_styles( $self, $styles ) {
 }
 
 1;
+
+=head1 REPOSITORY
+
+The public repository of this module is
+L<https://github.com/Corion/Spreadsheet-ReadSXC>.
+
+=head1 SUPPORT
+
+The public support forum of this module is L<https://perlmonks.org/>.
+
+=head1 BUG TRACKER
+
+Please report bugs in this module via the Github bug queue at
+L<https://github.com/Corion/Spreadsheet-ReadSXC/issues>
+
+=head1 AUTHOR
+
+Max Maischein C<corion@cpan.org>
+
+=head1 CONTRIBUTORS
+
+H. Merijn Brand C<hmbrand@cpan.org>
+Mohammad S Anwar C<manwar@cpan.org>
+
+=head1 COPYRIGHT (c)
+
+Copyright 2019-2020 by Max Maischein C<corion@cpan.org>.
+
+=head1 LICENSE
+
+This module is released under the same terms as Perl itself.
+
+=cut
