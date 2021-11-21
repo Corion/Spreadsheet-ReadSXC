@@ -32,13 +32,13 @@ requires:
   Storable: '0'
   XML::Twig: '0'
   XML::Twig::XPath: '0'
-  XML::XPath: '0'
+  XML::XPath: '3.50'
   XML::XPathEngine: '0'
   perl: '5.010'
 resources:
   bugtracker: https://github.com/Corion/Spreadsheet-ReadSXC/issues
   license: https://dev.perl.org/licenses/
   repository: git://github.com/Corion/Spreadsheet-ReadSXC.git
-version: '0.35'
+version: '0.36'
 x_serialization_backend: 'CPAN::Meta::YAML version 0.018'
 x_static_install: 1
