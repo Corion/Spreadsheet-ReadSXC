@@ -333,7 +333,7 @@ Max Maischein, [mailto:corion@cpan.org](mailto:corion@cpan.org)
 
 Copyright 2005-2019 by Christoph Terhechte
 
-Copyright 2019- by Max Maischein
+Copyright 2019-2023 by Max Maischein
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.
